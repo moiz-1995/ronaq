@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ListChecks, CalendarHeart, Store, Wallet, Bell, MessageCircle } from "lucide-react";
 import { getUser } from "@/lib/auth";
 import { HeroStage } from "@/components/three/HeroStage";
+import { Lanterns } from "@/components/three/Lazy";
 
 export const metadata = { title: "Plan an event" };
 
@@ -11,8 +12,9 @@ export default async function PlanPage() {
   if (user) redirect(user.launchpadStep >= 4 ? "/dashboard" : "/launchpad");
   return (
     <>
-      <section className="dot-bg text-sand">
-        <div className="wrap grid items-center gap-10 py-14 lg:grid-cols-[1.2fr_.9fr]">
+      <section className="dot-bg relative overflow-hidden text-sand">
+        <Lanterns count={24} />
+        <div className="wrap relative grid items-center gap-10 py-14 lg:grid-cols-[1.2fr_.9fr]">
           <div className="min-w-0">
             <p className="kicker !text-[#ff8a8f]">Free event planner</p>
             <h1 className="h-display mt-3 text-[clamp(2.4rem,7vw,5rem)]">Plan your ronaq in three moves.</h1>

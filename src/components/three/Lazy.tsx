@@ -43,3 +43,20 @@ export function Stall({ className = "h-80 w-full" }: { className?: string }) {
   const ok = useCan3D();
   return <div className={className}>{ok ? <StallInner /> : <CraftArt kind="rental" seed={5} className="h-full w-full rounded-3xl" />}</div>;
 }
+
+const LanternsInner = dynamic(() => import("./Lanterns3D"), { ssr: false });
+
+/** Ambient floating lanterns for dark hero bands. Decorative only; skipped without WebGL or with reduced motion. */
+export function Lanterns({ count, className = "absolute inset-0" }: { count?: number; className?: string }) {
+  const ok = useCan3D();
+  if (!ok) return null;
+  return <div aria-hidden className={`pointer-events-none opacity-55 ${className}`}><LanternsInner count={count} /></div>;
+}
+
+const StageInner = dynamic(() => import("./HeroStage3D"), { ssr: false });
+
+/** A single 3D occasion model (0 henna, 1 dhol, 2 cake) — used on the 404 page. */
+export function OccasionModel({ active = 1, className = "h-56 w-56" }: { active?: number; className?: string }) {
+  const ok = useCan3D();
+  return <div className={className}>{ok ? <StageInner active={active} /> : <CraftArt kind={["henna", "dhol", "cake"][active]} seed={4} className="h-full w-full rounded-full" />}</div>;
+}

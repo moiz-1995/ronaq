@@ -48,7 +48,7 @@ export function HeroStage() {
           </div>
         )}
       </div>
-      <div className="flex gap-2" role="group" aria-label="Choose an occasion">
+      <div className="relative z-10 flex gap-2" role="group" aria-label="Choose an occasion">
         {OCCASIONS.map((o, k) => (
           <button
             key={o.name}
