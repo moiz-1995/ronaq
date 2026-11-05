@@ -1,0 +1,170 @@
+"use client";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useRef, useState } from "react";
+import { SlidersHorizontal, X } from "lucide-react";
+import type { Attribute, Area, Category, City } from "@/db/schema";
+import { SERVICE_MODES } from "@/db/catalog";
+import { PRICING_LABELS } from "@/lib/price";
+
+type Props = {
+  cities: City[];
+  areas: Area[];
+  categories: Category[];
+  attributes: Attribute[];
+  fixedCategory?: Category | null;
+};
+
+/** FR-MKT-003…008: only the filters that make sense for the chosen category appear. */
+export function Filters({ cities, areas, categories, attributes, fixedCategory }: Props) {
+  const router = useRouter();
+  const path = usePathname();
+  const sp = useSearchParams();
+  const formRef = useRef<HTMLFormElement>(null);
+  const [city, setCity] = useState(sp.get("city") ?? "");
+  const [open, setOpen] = useState(false);
+  const category = fixedCategory ?? categories.find((c) => c.id === sp.get("category"));
+  const filterable = attributes.filter((a) => a.filterable);
+  const unitHint = category?.priceModels?.filter((m) => m !== "quote").map((m) => PRICING_LABELS[m as keyof typeof PRICING_LABELS].toLowerCase()).join(" / ");
+
+  const apply = () => {
+    const fd = new FormData(formRef.current!);
+    const qs = new URLSearchParams();
+    for (const [k, v] of fd.entries()) if (typeof v === "string" && v !== "") qs.append(k, v);
+    if (!fd.get("quote")) qs.set("quote", "0");
+    else qs.delete("quote");
+    router.push(`${path}?${qs.toString()}`, { scroll: false });
+  };
+  const clear = () => {
+    const keep = new URLSearchParams();
+    if (sp.get("q")) keep.set("q", sp.get("q")!);
+    router.push(`${path}?${keep}`, { scroll: false });
+    setCity("");
+  };
+  const count = [...sp.keys()].filter((k) => !["q", "sort", "page"].includes(k)).length;
+
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} className="btn btn-sm lg:hidden">
+        <SlidersHorizontal size={16} /> Filters{count ? ` (${count})` : ""}
+      </button>
+      <div className={`${open ? "fixed inset-0 z-50 overflow-y-auto bg-ink/50 p-3" : "hidden"} lg:static lg:block lg:bg-transparent lg:p-0`} onClick={() => setOpen(false)}>
+        <form
+          ref={formRef}
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) => { if (window.innerWidth >= 1024 && (e.target as HTMLElement).tagName !== "INPUT") apply(); }}
+          onSubmit={(e) => { e.preventDefault(); apply(); setOpen(false); }}
+          className="card ml-auto grid max-w-sm gap-5 bg-white p-5 lg:sticky lg:top-24 lg:max-w-none"
+          aria-label="Filters"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-lg">Filters</h2>
+            <div className="flex items-center gap-1">
+              {count > 0 && <button type="button" onClick={clear} className="text-sm font-bold text-red underline">Clear all</button>}
+              <button type="button" onClick={() => setOpen(false)} className="rounded-lg p-1 hover:bg-sand lg:hidden" aria-label="Close filters"><X size={18} /></button>
+            </div>
+          </div>
+          {sp.get("q") && <input type="hidden" name="q" value={sp.get("q")!} />}
+          {sp.get("sort") && <input type="hidden" name="sort" value={sp.get("sort")!} />}
+
+          {!fixedCategory && (
+            <div className="field">
+              <label className="label" htmlFor="f-cat">Category</label>
+              <select id="f-cat" name="category" className="input" defaultValue={sp.get("category") ?? ""}>
+                <option value="">All categories</option>
+                {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+          )}
+
+          <div className="field">
+            <label className="label" htmlFor="f-city">City</label>
+            <select id="f-city" name="city" className="input" value={city} onChange={(e) => setCity(e.target.value)}>
+              <option value="">Any city</option>
+              {cities.map((c) => <option key={c.id} value={c.id} disabled={!c.active}>{c.name}{c.active ? "" : " (coming soon)"}</option>)}
+            </select>
+          </div>
+          {city && (
+            <div className="field">
+              <label className="label" htmlFor="f-area">Area or sector</label>
+              <select id="f-area" name="area" className="input" defaultValue={sp.get("area") ?? ""}>
+                <option value="">Anywhere in the city</option>
+                {areas.filter((a) => a.cityId === city).map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
+              <p className="hint">Shows vendors who serve this area.</p>
+            </div>
+          )}
+
+          <fieldset className="grid gap-2">
+            <legend className="label mb-1">Budget (PKR)</legend>
+            <div className="grid grid-cols-2 gap-2">
+              <input aria-label="Minimum price" name="min" inputMode="numeric" placeholder="Min" className="input" defaultValue={sp.get("min") ?? ""} />
+              <input aria-label="Maximum price" name="max" inputMode="numeric" placeholder="Max" className="input" defaultValue={sp.get("max") ?? ""} />
+            </div>
+            {unitHint && <p className="hint">Prices in this category are {unitHint}.</p>}
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="quote" value="1" defaultChecked={sp.get("quote") !== "0"} className="accent-red" /> Include vendors who give custom quotes</label>
+          </fieldset>
+
+          <div className="field">
+            <label className="label" htmlFor="f-mode">How they work</label>
+            <select id="f-mode" name="mode" className="input" defaultValue={sp.get("mode") ?? ""}>
+              <option value="">Any</option>
+              {SERVICE_MODES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+            </select>
+          </div>
+
+          <div className="field">
+            <label className="label" htmlFor="f-date">Available on</label>
+            <input id="f-date" type="date" name="date" className="input" defaultValue={sp.get("date") ?? ""} />
+            <p className="hint">Based on the vendor&apos;s own calendar. Confirm directly with them.</p>
+          </div>
+
+          {filterable.map((a) => (
+            <fieldset key={a.id} className="grid gap-2">
+              <legend className="label mb-1">{a.label}{a.vendorDeclared && <span className="ml-1 text-xs font-normal text-mute">(vendor-declared)</span>}</legend>
+              {a.type === "boolean" ? (
+                <label className="check w-fit"><input type="checkbox" name={`a_${a.key}`} value="true" defaultChecked={sp.getAll(`a_${a.key}`).includes("true")} /> Yes</label>
+              ) : a.type === "number" ? (
+                <input name={`a_${a.key}`} inputMode="numeric" placeholder={`At least… ${a.unit ?? ""}`} className="input" defaultValue={sp.get(`a_${a.key}`) ?? ""} aria-label={a.label} />
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {(a.options ?? []).map((o) => (
+                    <label key={o} className="check"><input type="checkbox" className="sr-only" name={`a_${a.key}`} value={o} defaultChecked={sp.getAll(`a_${a.key}`).includes(o)} /> {o}</label>
+                  ))}
+                </div>
+              )}
+            </fieldset>
+          ))}
+
+          <button type="submit" className="btn btn-red w-full">Show results</button>
+        </form>
+      </div>
+    </>
+  );
+}
+
+export function SortSelect() {
+  const router = useRouter();
+  const path = usePathname();
+  const sp = useSearchParams();
+  return (
+    <label className="flex items-center gap-2 text-sm font-bold">
+      Sort
+      <select
+        className="input !min-h-10 !w-auto !py-1.5"
+        value={sp.get("sort") ?? "relevance"}
+        onChange={(e) => {
+          const qs = new URLSearchParams(sp);
+          qs.set("sort", e.target.value);
+          qs.delete("page");
+          router.push(`${path}?${qs}`, { scroll: false });
+        }}
+      >
+        <option value="relevance">Best match</option>
+        <option value="rating">Highest rated</option>
+        <option value="price">Lowest listed price</option>
+        <option value="newest">Newest</option>
+        {sp.get("area") && <option value="distance">Nearest</option>}
+      </select>
+    </label>
+  );
+}

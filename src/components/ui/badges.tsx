@@ -6,8 +6,8 @@ const POINTS: [number, number][] = [[2, 40], [5, 25], [14, 14], [26, 21], [38, 1
 /** Founding vendor badge with a string of lights draped over its top-left corner. */
 export function FoundingBadge({ number, className = "" }: { number?: number | null; className?: string }) {
   return (
-    <span className={`relative inline-flex items-center gap-1 rounded-[9px] border-[3px] border-ink bg-sand px-2.5 py-1.5 font-display text-[11px] leading-none text-ink shadow-[3px_3px_0_var(--color-ink)] ${className}`}>
-      <svg viewBox="0 0 74 50" aria-hidden className="pointer-events-none absolute -left-4 -top-[15px] h-[50px] w-[74px] overflow-visible">
+    <span className={`relative inline-flex items-center gap-1 rounded-[9px] border-[3px] border-ink bg-sand py-1.5 pl-3.5 pr-2.5 font-display text-[11px] leading-none text-ink shadow-[3px_3px_0_var(--color-ink)] ${className}`}>
+      <svg viewBox="0 0 74 50" aria-hidden className="pointer-events-none absolute -left-[22px] -top-[24px] h-[50px] w-[74px] overflow-visible">
         <path d="M3 49 Q-1 30 8 20 Q15 12 16 15 Q26 23 36 13 Q44 6 52 13 Q60 19 72 10" fill="none" stroke="#1b1340" strokeWidth={1.6} />
         {POINTS.map(([x, y], i) => (
           <circle key={i} cx={x} cy={y + 3} r={3.4} fill={BULBS[i]} stroke="#1b1340" strokeWidth={1}
