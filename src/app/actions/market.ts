@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db, schema as s } from "@/db";
 import { getUser } from "@/lib/auth";
 import { track } from "@/lib/track";
+import { rateLimit, TOO_MANY } from "@/lib/ratelimit";
 
 /** FR-MKT-009: guests are sent to sign in and brought back to the vendor. */
 export async function toggleShortlist(vendorId: string, returnTo: string) {
@@ -33,6 +34,7 @@ const reportSchema = z.object({
 
 /** FR-MKT-013: anyone, including guests, can report. */
 export async function submitReport(_: unknown, form: FormData): Promise<{ error?: string; message?: string } | undefined> {
+  if (!(await rateLimit("report", 10, 60 * 60 * 1000))) return { error: TOO_MANY };
   const parsed = reportSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const user = await getUser();

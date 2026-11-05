@@ -7,6 +7,7 @@ import { db, schema as s } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { notify, track } from "@/lib/track";
 import { loadThreadFor } from "@/lib/threads";
+import { rateLimit, TOO_MANY } from "@/lib/ratelimit";
 
 const inquirySchema = z.object({
   vendorId: z.string().min(1),
@@ -19,6 +20,7 @@ const inquirySchema = z.object({
 /** FR-COM-001/002: the consumer chooses exactly which event details to share. */
 export async function createInquiry(_: unknown, form: FormData): Promise<{ error?: string } | undefined> {
   const user = await requireUser();
+  if (!(await rateLimit("inquiry", 20, 60 * 60 * 1000, user.id))) return { error: "You have sent a lot of inquiries in the last hour. Please wait a little before sending more." };
   const parsed = inquirySchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const d = parsed.data;
@@ -69,6 +71,7 @@ export async function sendMessage(_: unknown, form: FormData): Promise<{ error?:
   const inquiryId = String(form.get("inquiryId") ?? "");
   const body = String(form.get("body") ?? "").trim();
   if (!body) return { error: "Write a message first." };
+  if (!(await rateLimit("message", 60, 10 * 60 * 1000, user.id))) return { error: TOO_MANY };
   if (body.length > 2000) return { error: "Messages can be up to 2,000 characters." };
   const t = await loadThreadFor(inquiryId, user.id);
   if (!t) return { error: "We couldn't find this conversation." };

@@ -11,6 +11,7 @@ import { VendorCard } from "@/components/vendor/VendorCard";
 import { Bunting, GiftBox } from "@/components/three/Lazy";
 import { Filters, SortSelect } from "./Filters";
 import { CraftArt } from "@/components/art/CraftArt";
+import { getSetting } from "@/lib/settings";
 
 export async function MarketView({ searchParams, category }: { searchParams: Record<string, string | string[] | undefined>; category?: Category | null }) {
   const params = parseSearchParams(searchParams);
@@ -23,6 +24,15 @@ export async function MarketView({ searchParams, category }: { searchParams: Rec
   const cards = await hydrateVendorCards(result.items.map((x) => x.vendor.id));
   const saved = await getShortlistIds(user?.id);
   await recordSearch(params, user?.id);
+
+  // FR-ADM-008 / §2: sponsored placement lives in its own labelled row, never mixed into organic ranking. Off by default.
+  let sponsored: Awaited<ReturnType<typeof hydrateVendorCards>> = [];
+  if ((result.page ?? 1) === 1 && (await getSetting("featuredEnabled"))) {
+    const feat = await db.select({ id: s.vendors.id }).from(s.vendors).innerJoin(s.vendorServices, eq(s.vendorServices.vendorId, s.vendors.id))
+      .where(and(eq(s.vendors.status, "approved"), eq(s.vendors.featured, true), ...(params.category ? [eq(s.vendorServices.categoryId, params.category)] : []), ...(params.city ? [eq(s.vendors.cityId, params.city)] : [])))
+      .limit(3);
+    sponsored = await hydrateVendorCards([...new Set(feat.map((f) => f.id))]);
+  }
 
   // FR-CUS-007: checklist categories come first, but every category stays available.
   let priority: Category[] = [];
@@ -90,7 +100,13 @@ export async function MarketView({ searchParams, category }: { searchParams: Rec
               <p className="font-bold" aria-live="polite">{result.total} {result.total === 1 ? "vendor" : "vendors"}</p>
               <Suspense><SortSelect /></Suspense>
             </div>
-            {params.sort === "price" && <p className="mb-4 rounded-xl bg-sand px-3 py-2 text-sm">Sorted by listed starting price. Vendors who only give custom quotes appear last.</p>}
+            {sponsored.length > 0 && (
+              <section aria-label="Sponsored" className="mb-8 rounded-3xl border-2 border-dashed border-sun bg-sun/10 p-4">
+                <p className="mb-3 text-xs font-bold uppercase tracking-wider text-mute">Sponsored · paid placement, not a ranking</p>
+                <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">{sponsored.map((d, i) => <VendorCard key={d.vendor.id} data={d} saved={saved.has(d.vendor.id)} seed={i + 90} sponsored />)}</div>
+              </section>
+            )}
+            {params.sort === "price" &&<p className="mb-4 rounded-xl bg-sand px-3 py-2 text-sm">Sorted by listed starting price. Vendors who only give custom quotes appear last.</p>}
             {cards.length ? (
               <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
                 {cards.map((d, i) => <VendorCard key={d.vendor.id} data={d} saved={saved.has(d.vendor.id)} seed={i + (result.page - 1) * 12} />)}

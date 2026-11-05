@@ -47,7 +47,7 @@ export function Checklist({ eventId, items, links, quotes, vendors, cats, shortl
   );
 }
 
-function Row({ it, linked, quotes, cat, shortlist, cityId, first, last, eventId }: { it: Item; linked: V[]; quotes: Q[]; cat?: Cat; shortlist: V[]; cityId: string | null; first: boolean; last: boolean; eventId: string }) {
+function Row({ it, linked, quotes, cat, shortlist, cityId, first, last }: { it: Item; linked: V[]; quotes: Q[]; cat?: Cat; shortlist: V[]; cityId: string | null; first: boolean; last: boolean; eventId: string }) {
   const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
   const selected = linked.find((v) => v.id === it.selectedVendorId);

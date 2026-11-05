@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { signInAction, signUpAction } from "@/app/actions/auth";
@@ -47,7 +48,7 @@ export function AuthForm({ mode, next, intent: initialIntent = "plan" }: { mode:
       <Submit className="btn btn-red w-full" pendingText={mode === "login" ? "Signing in…" : "Creating account…"}>
         {mode === "login" ? "Sign in" : "Create free account"}
       </Submit>
-      {mode === "signup" && <p className="text-xs text-mute">By joining you agree to Ronaq&apos;s <a className="underline" href="/legal/terms">terms</a> and <a className="underline" href="/legal/privacy">privacy policy</a>.</p>}
+      {mode === "signup" && <p className="text-xs text-mute">By joining you agree to Ronaq&apos;s <Link className="underline" href="/legal/terms">terms</Link> and <Link className="underline" href="/legal/privacy">privacy policy</Link>.</p>}
     </form>
   );
 }

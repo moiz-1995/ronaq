@@ -17,7 +17,7 @@ export function VendorCard({ data, saved, seed = 0, sponsored = false }: { data:
     <Tilt>
       <article className="card card-shadow relative h-full overflow-visible bg-white">
         {v.founding && <FoundingBadge className="absolute left-3.5 top-3.5 z-10" />}
-        {sponsored && <span className="chip absolute bottom-[calc(100%-2.6rem)] right-3.5 z-10 bg-sun">SPONSORED</span>}
+        {sponsored && <span className={`chip absolute left-3.5 z-10 bg-sun ${v.founding ? "top-14" : "top-3.5"}`}>SPONSORED</span>}
         <div className="absolute right-3 top-3 z-10"><SaveButton vendorId={v.id} saved={saved} /></div>
         <Link href={`/v/${v.slug}`} className="block focus-visible:outline-offset-[-3px]">
           <div className="relative aspect-[4/3] overflow-hidden rounded-t-[19px] border-b-[3px] border-ink">

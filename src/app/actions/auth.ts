@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { db, schema as s } from "@/db";
 import { checkPassword, createSession, destroySession, hashPassword, safeNext, getUser } from "@/lib/auth";
 import { track } from "@/lib/track";
+import { rateLimit, TOO_MANY } from "@/lib/ratelimit";
 
 export type FormState = { error?: string; fields?: Record<string, string>; ok?: boolean; message?: string } | undefined;
 
@@ -16,6 +17,7 @@ const signUpSchema = z.object({
 });
 
 export async function signUpAction(_: FormState, form: FormData): Promise<FormState> {
+  if (!(await rateLimit("signup", 10, 60 * 60 * 1000))) return { error: TOO_MANY };
   const raw = Object.fromEntries(form) as Record<string, string>;
   const parsed = signUpSchema.safeParse(raw);
   if (!parsed.success) return { error: parsed.error.issues[0].message, fields: { name: raw.name ?? "", email: raw.email ?? "" } };
@@ -39,6 +41,7 @@ export async function signInAction(_: FormState, form: FormData): Promise<FormSt
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   const password = String(form.get("password") ?? "");
   if (!email || !password) return { error: "Enter your email and password.", fields: { email } };
+  if (!(await rateLimit("login", 10, 15 * 60 * 1000)) || !(await rateLimit("login-email", 8, 15 * 60 * 1000, email))) return { error: TOO_MANY, fields: { email } };
   const user = await db.query.users.findFirst({ where: eq(s.users.email, email) });
   if (!user || !(await checkPassword(password, user.passwordHash))) return { error: "That email and password don't match. Check them and try again.", fields: { email } };
   if (user.status === "suspended") return { error: "This account is suspended. Contact support@ronaq.pk if you think this is a mistake.", fields: { email } };

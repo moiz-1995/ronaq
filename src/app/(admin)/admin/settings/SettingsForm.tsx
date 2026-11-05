@@ -38,7 +38,7 @@ export function SettingsForm({ policy, cap, featured, cities }: { policy: Policy
 
       <fieldset className="grid gap-3 rounded-2xl border-2 border-red/40 bg-white p-5">
         <legend className="px-1 font-display text-lg">Featured placement</legend>
-        <label className="flex items-start gap-2 text-sm"><input type="checkbox" name="featuredEnabled" defaultChecked={featured} className="mt-1 accent-red" /> <span>Allow featured vendors. They're always labelled <b>Sponsored</b> and never mixed into organic ranking. <b>Keep this off for MVP</b> until the placement policy is approved (PRD FR-ADM-008).</span></label>
+        <label className="flex items-start gap-2 text-sm"><input type="checkbox" name="featuredEnabled" defaultChecked={featured} className="mt-1 accent-red" /> <span>Allow featured vendors. They are always labelled <b>Sponsored</b> and never mixed into organic ranking. <b>Keep this off for MVP</b> until the placement policy is approved (PRD FR-ADM-008).</span></label>
       </fieldset>
 
       <FormMessage state={state} />
