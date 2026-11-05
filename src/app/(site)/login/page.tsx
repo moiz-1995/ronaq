@@ -1,0 +1,39 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getUser, safeNext } from "@/lib/auth";
+import { AuthForm } from "./AuthForm";
+import { AuthShell } from "@/components/site/AuthShell";
+
+export const metadata = { title: "Sign in" };
+
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; reason?: string }> }) {
+  const { next, reason } = await searchParams;
+  if (await getUser()) redirect(safeNext(next));
+  return (
+    <AuthShell
+      title="Welcome back"
+      sub={reason ?? (next ? "Sign in to continue where you left off." : "Sign in to plan, save vendors and message them.")}
+    >
+      <AuthForm mode="login" next={next} />
+      <p className="text-sm">
+        New to Ronaq? <Link className="font-bold text-red underline" href={`/signup${next ? `?next=${encodeURIComponent(next)}` : ""}`}>Create a free account</Link>
+      </p>
+      <DemoLogins />
+    </AuthShell>
+  );
+}
+
+function DemoLogins() {
+  if (process.env.NODE_ENV === "production") return null;
+  return (
+    <details className="rounded-xl bg-sand p-3 text-sm">
+      <summary className="cursor-pointer font-bold">Demo accounts (development only)</summary>
+      <ul className="mt-2 grid gap-1 font-mono text-xs">
+        <li>ayesha@example.com / password123 (family planning a wedding)</li>
+        <li>hina@example.com / password123 (vendor: Hina&apos;s Henna Studio)</li>
+        <li>admin@ronaq.pk / ronaq-admin (admin)</li>
+        <li>moderator@ronaq.pk / ronaq-mod (moderator)</li>
+      </ul>
+    </details>
+  );
+}

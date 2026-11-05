@@ -1,26 +1,113 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Ronaq — Truck Art Mela, round 2: blue and red lead, sage beige replaces chrome yellow, yellow only as a spark. */
+@theme {
+  --color-ink: #1b1340;
+  --color-ink-2: #2a2160;
+  --color-blue: #1f4fe0;
+  --color-blue-soft: #e4ebff;
+  --color-red: #e0262f;
+  --color-red-soft: #fde6e7;
+  --color-sand: #eef1e8;
+  --color-sand-2: #dfe4d6;
+  --color-paper: #fafbf6;
+  --color-teal: #00a99d;
+  --color-pink: #ff2e88;
+  --color-sun: #ffc93c;
+  --color-green: #2fa84f;
+  --color-henna: #d0662a;
+  --color-mute: #5d5880;
+
+  --font-display: var(--font-bungee), Impact, "Arial Black", sans-serif;
+  --font-shade: var(--font-bungee-shade), var(--font-bungee), Impact, sans-serif;
+  --font-sans: var(--font-rubik), system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --shadow-sticker: 5px 5px 0 var(--color-ink);
+  --shadow-sticker-red: 6px 6px 0 var(--color-red);
+  --shadow-sticker-blue: 6px 6px 0 var(--color-blue);
+  --radius-sticker: 14px;
+
+  --animate-marquee: marquee 30s linear infinite;
+  --animate-twinkle: twinkle 1.6s ease-in-out infinite;
+  --animate-float: float 5s ease-in-out infinite;
+  @keyframes marquee { to { transform: translateX(-50%); } }
+  @keyframes twinkle { 50% { opacity: 0.35; } }
+  @keyframes float { 50% { transform: translateY(-8px); } }
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+:root { color-scheme: light; }
+html { -webkit-text-size-adjust: 100%; }
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+h1, h2, h3 { text-wrap: balance; }
+:focus-visible { outline: 3px solid var(--color-blue); outline-offset: 3px; border-radius: 6px; }
+
+@layer components {
+  .wrap {
+    margin-inline: auto;
+    width: 100%;
+    max-width: 1200px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  /* reflector-stripe divider (chamak patti) */
+  .patti {
+    height: 14px;
+    background: repeating-linear-gradient(-45deg, var(--color-red) 0 14px, var(--color-sand) 14px 28px, var(--color-blue) 28px 42px, var(--color-sand) 42px 56px);
+  }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border: 3px solid var(--color-ink); border-radius: var(--radius-sticker);
+    padding: 10px 18px; min-height: 46px;
+    font-family: var(--font-display); font-size: 14px; line-height: 1; letter-spacing: 0.01em;
+    box-shadow: var(--shadow-sticker); cursor: pointer; text-decoration: none; white-space: nowrap;
+    transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+    background: var(--color-paper); color: var(--color-ink);
+  }
+  .btn:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--color-ink); }
+  .btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--color-ink); }
+  .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+  .btn-red { background: var(--color-red); color: var(--color-sand); }
+  .btn-blue { background: var(--color-blue); color: var(--color-sand); }
+  .btn-sand { background: var(--color-sand); color: var(--color-ink); }
+  .btn-ink { background: var(--color-ink); color: var(--color-sand); }
+  .btn-sm { min-height: 36px; padding: 6px 12px; font-size: 12px; box-shadow: 3px 3px 0 var(--color-ink); border-width: 2px; }
+  .btn-ghost { box-shadow: none; border-color: transparent; background: transparent; font-family: var(--font-sans); font-weight: 700; }
+  .btn-ghost:hover { box-shadow: none; transform: none; background: var(--color-sand); }
+
+  .card { background: #fff; border: 3px solid var(--color-ink); border-radius: 22px; }
+  .card-shadow { box-shadow: var(--shadow-sticker); }
+  .panel { background: #fff; border: 2px solid rgb(27 19 64 / 0.12); border-radius: 18px; }
+
+  .field { display: grid; gap: 6px; }
+  .label { font-weight: 700; font-size: 14px; }
+  .hint { font-size: 13px; color: var(--color-mute); }
+  .input {
+    width: 100%; min-height: 46px; border: 2px solid var(--color-ink); border-radius: 12px; background: #fff;
+    padding: 10px 12px; font: 500 16px/1.4 var(--font-sans); color: var(--color-ink);
+  }
+  .input:focus { outline: 3px solid var(--color-blue); outline-offset: 1px; }
+  textarea.input { min-height: 110px; resize: vertical; }
+  .check { display: inline-flex; align-items: center; gap: 8px; border: 2px solid var(--color-ink); border-radius: 999px; padding: 6px 12px; font-weight: 500; font-size: 14px; cursor: pointer; background: #fff; user-select: none; }
+  .check:has(input:checked) { background: var(--color-ink); color: var(--color-sand); }
+  .check input { accent-color: var(--color-red); }
+
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-display); font-size: 11px; line-height: 1; padding: 6px 9px; border-radius: 8px; border: 2px solid var(--color-ink); white-space: nowrap; }
+  .kicker { font-family: var(--font-display); font-size: 13px; letter-spacing: 0.06em; color: var(--color-red); text-transform: uppercase; }
+  .h-display { font-family: var(--font-display); line-height: 1.02; }
+  .dashed-top { border-top: 2px dashed rgb(27 19 64 / 0.2); }
+  .dot-bg {
+    background-color: var(--color-ink);
+    background-image: radial-gradient(circle at 12% 30%, rgb(224 38 47 / 0.4) 0 2px, transparent 3px), radial-gradient(circle at 80% 70%, rgb(31 79 224 / 0.6) 0 2px, transparent 3px);
+    background-size: 38px 38px, 52px 52px;
+  }
+  .tabular { font-variant-numeric: tabular-nums; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
 }
