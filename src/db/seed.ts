@@ -142,6 +142,20 @@ async function main() {
   ]);
   await db.insert(s.notifications).values({ userId: ayesha.id, type: "inquiry_reply", title: "Hina's Henna Studio replied", body: "I can also send a few bridal designs…", href: `/inbox/${inq.id}` });
 
+  // ~30 days of synthetic, pseudonymous analytics so the admin funnel isn't empty in demos
+  const funnel: [string, number][] = [["guest_search_performed", 900], ["search_performed", 420], ["filter_applied", 380], ["vendor_profile_viewed", 1150], ["contact_cta_clicked", 210], ["inquiry_created", 96], ["inquiry_response_sent", 71], ["registration_completed", 140], ["onboarding_completed", 102], ["launchpad_started", 84], ["launchpad_completed", 61], ["event_created", 88], ["shortlist_added", 260], ["report_submitted", 6], ["report_resolved", 5]];
+  const catIdList = Object.values(catIds);
+  const cityList = [cityIds.islamabad, cityIds.rawalpindi];
+  const rows: (typeof s.analyticsEvents.$inferInsert)[] = [];
+  let seedN = 7;
+  const rnd = () => ((seedN = (seedN * 9301 + 49297) % 233280) / 233280);
+  for (const [name, n] of funnel) {
+    for (let k = 0; k < n; k++) {
+      rows.push({ name, actor: `demo${Math.floor(rnd() * 400)}`, cityId: cityList[Math.floor(rnd() * 2)], categoryId: catIdList[Math.floor(rnd() * catIdList.length)], createdAt: new Date(now - rnd() * 30 * 86400000) });
+    }
+  }
+  for (let i = 0; i < rows.length; i += 500) await db.insert(s.analyticsEvents).values(rows.slice(i, i + 500));
+
   console.log(`Seeded ${CITIES.length} cities, ${CATEGORIES.length} categories, ${V.length} vendors.`);
   console.log("Logins: admin@ronaq.pk / ronaq-admin · ayesha@example.com / password123 · hina@example.com / password123 (seller)");
 }
