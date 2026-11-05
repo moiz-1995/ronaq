@@ -130,7 +130,7 @@ async function main() {
 
   // an inquiry thread with Hina's studio
   const now = Date.now();
-  const [inq] = await db.insert(s.inquiries).values({ consumerId: ayesha.id, vendorId: vendorIds["Hina's Henna Studio"], eventId: ev.id, categoryId: catIds["mehndi-henna"], shared: { eventDate: "2026-12-24", location: "Satellite Town, Rawalpindi", guestCount: 8, service: "Bridal mehndi + 7 family members", eventName: "Mehndi night" }, status: "responded", consumerUnread: 1, vendorUnread: 0, lastMessageAt: new Date(now - 3600000), firstResponseAt: new Date(now - 7000000) }).returning();
+  const [inq] = await db.insert(s.inquiries).values({ consumerId: ayesha.id, vendorId: vendorIds["Hina's Henna Studio"], eventId: ev.id, categoryId: catIds["mehndi-henna"], shared: { eventDate: "2026-12-24", location: "Satellite Town, Rawalpindi", guestCount: 8, service: "Bridal mehndi + 7 family members", eventName: "Mehndi night" }, status: "responded", consumerUnread: 1, vendorUnread: 0, lastMessageAt: new Date(now - 3600000), firstResponseAt: new Date(now - 7000000), createdAt: new Date(now - 9000000) }).returning();
   const hinaOwner = (await db.query.vendors.findFirst({ where: (v, { eq }) => eq(v.id, vendorIds["Hina's Henna Studio"]) }))!.ownerId!;
   await db.insert(s.messages).values([
     { inquiryId: inq.id, senderId: ayesha.id, senderRole: "consumer", body: "Assalam o alaikum! Are you free on 24 December for bridal mehndi plus 7 family members at home?", createdAt: new Date(now - 9000000) },

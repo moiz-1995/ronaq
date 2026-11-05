@@ -36,3 +36,10 @@ export function GiftBox({ className = "h-48 w-48" }: { className?: string }) {
     </div>
   );
 }
+
+const StallInner = dynamic(() => import("./Stall3D"), { ssr: false });
+
+export function Stall({ className = "h-80 w-full" }: { className?: string }) {
+  const ok = useCan3D();
+  return <div className={className}>{ok ? <StallInner /> : <CraftArt kind="rental" seed={5} className="h-full w-full rounded-3xl" />}</div>;
+}
