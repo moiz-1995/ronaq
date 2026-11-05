@@ -114,7 +114,7 @@ async function main() {
     { userId: ayesha.id, name: "Walima", type: "walima", label: "Walima", date: "2026-12-28", guestCount: 400 },
   ]);
   const wedding = TEMPLATES[0].items;
-  const statuses = ["booked", "shortlisted", "searching", "not_started", "booked", "shortlisted", "not_started", "searching", "booked", "not_started"] as const;
+  const statuses = ["shortlisted", "not_started", "searching", "booked", "booked", "shortlisted", "not_started", "searching", "booked", "not_started"] as const;
   for (const [k, [label, cat]] of wedding.entries()) {
     const [item] = await db.insert(s.checklistItems).values({ eventId: ev.id, label, categoryId: cat ? catIds[cat] : null, status: statuses[k], sortOrder: k, budget: [600000, 250000, 120000, 60000, 150000, 40000, null, 50000, 30000, null][k] ?? null }).returning();
     if (label === "Catering") {
