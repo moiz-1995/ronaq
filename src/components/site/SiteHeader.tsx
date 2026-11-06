@@ -21,7 +21,7 @@ export async function SiteHeader() {
             <Link className="rounded-lg px-3 py-2 hover:bg-white/10" href={user ? "/dashboard" : "/plan"}>Plan an event</Link>
             {user && <Link className="rounded-lg px-3 py-2 hover:bg-white/10" href="/events">Events</Link>}
             {user && <Link className="rounded-lg px-3 py-2 hover:bg-white/10" href="/shortlist">Shortlist</Link>}
-            <Link className="rounded-lg px-3 py-2 hover:bg-white/10" href={vendor ? "/seller" : "/sell"}>{vendor ? "My business" : "For vendors"}</Link>
+            {!user && <Link className="rounded-lg px-3 py-2 hover:bg-white/10" href="/sell">For vendors</Link>}
           </nav>
           <div className="flex items-center gap-1.5">
             {user ? (

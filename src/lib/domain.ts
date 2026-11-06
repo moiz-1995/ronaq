@@ -4,10 +4,10 @@ import type { ReviewPolicy } from "./settings";
 
 /** FR-EVT-004: "Shaadi ki Ronaq", with user labels and a safe fallback. */
 export function eventHeading(ev: { label?: string | null; type?: string | null; name?: string | null } | null | undefined): string {
-  if (!ev) return "Apki Ronaq";
+  if (!ev) return "Ap ki Ronaq";
   const raw = (ev.label ?? "").trim() || EVENT_TYPES.find((t) => t.value === ev.type)?.heading || "";
   const clean = raw.replace(/\s+ki\s+ronaq$/i, "").slice(0, 28);
-  return clean ? `${clean} ki Ronaq` : "Apki Ronaq";
+  return clean ? `${clean} ki Ronaq` : "Ap ki Ronaq";
 }
 
 export type CompletenessInput = {
@@ -103,5 +103,24 @@ export const INQUIRY_STATUS_LABELS: Record<string, string> = {
   sent: "Sent",
   delivered: "Delivered",
   responded: "Replied",
-  closed: "Closed",
+  closed: "Done",
 };
+
+/** Guest ranges for event forms. The stored number is the range's upper bound; custom counts are stored as-is. */
+export const GUEST_RANGES = [
+  { max: 25, label: "Up to 25" },
+  { max: 50, label: "25–50" },
+  { max: 100, label: "50–100" },
+  { max: 200, label: "100–200" },
+  { max: 350, label: "200–350" },
+  { max: 500, label: "350–500" },
+  { max: 800, label: "500–800" },
+  { max: 1200, label: "800–1,200" },
+  { max: 2000, label: "1,200+" },
+] as const;
+
+export function guestLabel(n: number | null | undefined): string | null {
+  if (!n) return null;
+  const r = GUEST_RANGES.find((g) => g.max === n);
+  return r ? `${r.label} guests` : `${n.toLocaleString("en-PK")} guests`;
+}

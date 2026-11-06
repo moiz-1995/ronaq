@@ -52,7 +52,7 @@ describe("event heading", () => {
   it("uses the label", () => expect(eventHeading({ label: "Shaadi" })).toBe("Shaadi ki Ronaq"));
   it("falls back to the type", () => expect(eventHeading({ type: "mehndi" })).toBe("Mehndi ki Ronaq"));
   it("doesn't double up", () => expect(eventHeading({ label: "Birthday ki Ronaq" })).toBe("Birthday ki Ronaq"));
-  it("has a safe fallback", () => expect(eventHeading({ type: "custom" })).toBe("Apki Ronaq"));
+  it("has a safe fallback", () => expect(eventHeading({ type: "custom" })).toBe("Ap ki Ronaq"));
 });
 
 describe("completeness", () => {
@@ -136,4 +136,11 @@ describe("vendor social links", () => {
     expect(socialLabel("instagram", "https://instagram.com/hina.henna")).toBe("@hina.henna");
     expect(socialLabel("website", "https://www.noorlens.pk")).toBe("noorlens.pk");
   });
+});
+
+import { guestLabel } from "@/lib/domain";
+describe("guest labels", () => {
+  it("shows ranges for range values", () => expect(guestLabel(200)).toBe("100–200 guests"));
+  it("shows exact custom counts", () => expect(guestLabel(137)).toBe("137 guests"));
+  it("handles empty", () => expect(guestLabel(null)).toBeNull());
 });

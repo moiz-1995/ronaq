@@ -24,10 +24,10 @@ export default async function Home() {
         <div className="wrap grid items-center gap-10 py-10 md:py-16 lg:grid-cols-[1.2fr_.9fr]">
           <div className="min-w-0">
             <h1 className="flex flex-wrap gap-x-3.5 gap-y-2.5 font-display text-[clamp(2.5rem,7.2vw,5.8rem)] leading-[.98]">
-              <span className="inline-block -rotate-2 rounded-[14px] bg-red px-4 pb-2 pt-1 text-sand">Shaadi.</span>
-              <span className="inline-block rotate-[1.5deg] rounded-[14px] bg-blue px-4 pb-2 pt-1 text-sand">Mehndi.</span>
-              <span className="inline-block -rotate-1 rounded-[14px] bg-sand px-4 pb-2 pt-1 text-ink">Birthday.</span>
-              <span className="inline-block">Apki <span className="text-[#ff6b72]">ronaq.</span></span>
+              <span className="inline-block -rotate-2 rounded-[14px] bg-red px-4 pb-2 pt-1 text-sand">Shaadi</span>
+              <span className="inline-block rotate-[1.5deg] rounded-[14px] bg-blue px-4 pb-2 pt-1 text-sand">Mehndi</span>
+              <span className="inline-block -rotate-1 rounded-[14px] bg-sand px-4 pb-2 pt-1 text-ink">Birthday</span>
+              <span className="inline-block">Apki <span className="text-[#ff6b72]">ronaq</span></span>
             </h1>
             <p className="mt-6 max-w-[48ch] text-lg text-sand/85">
               The local talent that makes Pindi and Islamabad celebrations loud, bright and delicious. Browse free, compare honest prices, message who you like.

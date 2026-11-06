@@ -4,7 +4,7 @@ import { db, schema as s } from "@/db";
 import type { Inquiry } from "@/db/schema";
 import { formatDate, formatDateTime } from "@/lib/time";
 import { pkr } from "@/lib/price";
-import { INQUIRY_STATUS_LABELS } from "@/lib/domain";
+import { INQUIRY_STATUS_LABELS, guestLabel } from "@/lib/domain";
 import { StatusChip } from "@/components/ui/badges";
 import { ReportButton } from "@/components/vendor/ReportButton";
 import { Composer, CloseToggle } from "./Composer";
@@ -16,7 +16,7 @@ export async function Thread({ inq, role, title, subtitle }: { inq: Inquiry; rol
     sh.eventName && { icon: CalendarDays, t: sh.eventName },
     sh.eventDate && { icon: CalendarDays, t: formatDate(sh.eventDate) },
     sh.location && { icon: MapPin, t: sh.location },
-    sh.guestCount && { icon: Users, t: `${sh.guestCount} guests` },
+    sh.guestCount && { icon: Users, t: guestLabel(sh.guestCount)! },
     sh.budget && { icon: Wallet, t: `Budget ${pkr(sh.budget)}` },
     sh.service && { icon: Briefcase, t: sh.service },
   ].filter(Boolean) as { icon: typeof MapPin; t: string }[];
@@ -55,8 +55,8 @@ export async function Thread({ inq, role, title, subtitle }: { inq: Inquiry; rol
         })}
       </ol>
       <div className="border-t-[3px] border-ink p-3 sm:p-4">
-        {inq.status === "closed" ? <p className="text-center text-sm text-mute">This conversation is closed. Reopen it to keep talking.</p> : <Composer inquiryId={inq.id} />}
-        <p className="mt-2 flex items-start gap-1.5 text-[11px] text-mute"><Info size={13} className="mt-px flex-none" /> Replied doesn&apos;t mean booked. Ronaq doesn&apos;t guarantee price, availability or service.</p>
+        {inq.status === "closed" ? <p className="text-center text-sm text-mute">You marked this conversation as done, so it's out of your active list. Tap <b>Reopen conversation</b> above to message again.</p> : <Composer inquiryId={inq.id} />}
+        <p className="mt-2 flex items-start gap-1.5 text-[11px] text-mute"><Info size={13} className="mt-px flex-none" /> Replied doesn&apos;t mean booked. Ronaq doesn&apos;t guarantee price, availability or service. Done with this chat? Use <b>Mark as done</b> to tidy your inbox. It doesn&apos;t cancel anything.</p>
       </div>
     </div>
   );

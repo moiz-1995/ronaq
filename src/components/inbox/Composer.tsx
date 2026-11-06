@@ -35,8 +35,9 @@ export function Composer({ inquiryId }: { inquiryId: string }) {
 export function CloseToggle({ inquiryId, closed }: { inquiryId: string; closed: boolean }) {
   const [pending, start] = useTransition();
   return (
-    <button type="button" className="btn btn-sm" disabled={pending} onClick={() => start(() => setInquiryClosed(inquiryId, !closed))}>
-      {closed ? "Reopen" : "Close"}
+    <button type="button" className="btn btn-sm" disabled={pending} onClick={() => start(() => setInquiryClosed(inquiryId, !closed))}
+      title={closed ? "Move this conversation back to active so you can keep messaging" : "Move this conversation out of your active list. It doesn't cancel anything with the vendor, and you can reopen it any time."}>
+      {closed ? "Reopen conversation" : "Mark as done"}
     </button>
   );
 }

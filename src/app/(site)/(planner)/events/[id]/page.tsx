@@ -5,7 +5,7 @@ import { CalendarDays, MapPin, Users, Pencil, Wallet } from "lucide-react";
 import { db, schema as s } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { countdown, formatDate } from "@/lib/time";
-import { eventHeading } from "@/lib/domain";
+import { eventHeading, guestLabel } from "@/lib/domain";
 import { pkr } from "@/lib/price";
 import { getCategories, getShortlistIds } from "@/lib/queries";
 import { loadEventPlan } from "@/lib/planner";
@@ -36,7 +36,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
             <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm opacity-85">
               <span className="inline-flex items-center gap-1"><CalendarDays size={15} /> {formatDate(ev.date)}{ev.time ? ` · ${ev.time}` : ""}</span>
               {ev.location && <span className="inline-flex items-center gap-1"><MapPin size={15} /> {ev.location}</span>}
-              {ev.guestCount && <span className="inline-flex items-center gap-1"><Users size={15} /> {ev.guestCount} guests</span>}
+              {ev.guestCount && <span className="inline-flex items-center gap-1"><Users size={15} /> {guestLabel(ev.guestCount)}</span>}
             </p>
             <div className="mt-4"><CountdownDisplay c={countdown(ev.date)} compact /></div>
           </div>

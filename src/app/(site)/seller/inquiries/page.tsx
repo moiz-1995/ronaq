@@ -18,7 +18,7 @@ export default async function SellerInquiries({ searchParams }: { searchParams: 
     <div className="wrap max-w-4xl py-8">
       <h1 className="h-display text-3xl">Inquiries</h1>
       <nav className="mt-4 flex flex-wrap gap-2" aria-label="Filter">
-        {[["all", "All"], ["unread", "Unread"], ["sent", "New"], ["responded", "Replied"], ["closed", "Closed"]].map(([k, l]) => (
+        {[["all", "All"], ["unread", "Unread"], ["sent", "New"], ["responded", "Replied"], ["closed", "Done"]].map(([k, l]) => (
           <Link key={k} href={`/seller/inquiries?f=${k}`} className={`check !text-xs ${f === k ? "!bg-ink !text-sand" : ""}`}>{l} · {rows.filter(({ i }) => k === "all" || (k === "unread" ? i.vendorUnread > 0 : k === "sent" ? i.status === "sent" || i.status === "delivered" : i.status === k)).length}</Link>
         ))}
       </nav>

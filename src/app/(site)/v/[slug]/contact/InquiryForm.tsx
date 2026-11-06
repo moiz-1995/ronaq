@@ -5,6 +5,7 @@ import { Lock } from "lucide-react";
 import { createInquiry } from "@/app/actions/inquiries";
 import { FormMessage, Submit } from "@/components/ui/form";
 import { formatDate } from "@/lib/time";
+import { guestLabel } from "@/lib/domain";
 
 type Ev = { id: string; name: string; date: string | null; location: string | null; guestCount: number | null; budget: number | null };
 
@@ -37,7 +38,7 @@ export function InquiryForm({ vendorId, vendorName, events, defaultEventId, chec
             <Share name="name" label={`Event name: ${ev.name}`} />
             {ev.date && <Share name="date" label={`Date: ${formatDate(ev.date)}`} />}
             {ev.location && <Share name="location" label={`Location: ${ev.location}`} />}
-            {ev.guestCount && <Share name="guests" label={`Guests: ${ev.guestCount}`} />}
+            {ev.guestCount && <Share name="guests" label={`Guests: ${guestLabel(ev.guestCount)?.replace(" guests", "")}`} />}
           </div>
         ) : <p className="text-sm text-mute">Choose an event above to share its date, place and guest count.</p>}
         <div className="mt-2 grid items-end gap-2 sm:grid-cols-[auto_1fr]">

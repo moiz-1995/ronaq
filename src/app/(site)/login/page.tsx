@@ -18,6 +18,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <p className="text-sm">
         New to Ronaq? <Link className="font-bold text-red underline" href={`/signup${next ? `?next=${encodeURIComponent(next)}` : ""}`}>Create a free account</Link>
       </p>
+      <p className="rounded-xl bg-sand px-3 py-2 text-sm"><b>Selling on Ronaq?</b> Sign in here with the same account, then choose <b>Switch to vendor</b> from your profile menu.</p>
       <DemoLogins />
     </AuthShell>
   );

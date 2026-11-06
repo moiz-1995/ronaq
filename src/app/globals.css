@@ -127,3 +127,25 @@ h1, h2, h3 { text-wrap: balance; }
 .hero-rays { animation: heroSpin 60s linear infinite; }
 .hero-spark { animation: heroSpark 2.4s ease-in-out infinite; }
 .hero-flame { animation: heroFlame .35s ease-in-out infinite alternate; }
+
+/* Dropdowns: replace the native OS look with a branded control (chevron, cream fill, sticker focus). */
+select {
+  -webkit-appearance: none; -moz-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1.5 1.5 7 7l5.5-5.5' fill='none' stroke='%231b1340' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center; background-size: 14px 9px;
+  padding-right: 40px !important; cursor: pointer; font-family: var(--font-sans); font-weight: 500;
+  border-radius: 12px; transition: box-shadow .15s, transform .15s, border-color .15s;
+}
+select.input { box-shadow: 3px 3px 0 var(--color-ink); }
+select.input:hover { box-shadow: 4px 4px 0 var(--color-ink); transform: translate(-1px, -1px); }
+select.input:focus { outline: none; box-shadow: 4px 4px 0 var(--color-red); border-color: var(--color-ink); }
+select:disabled { opacity: .55; cursor: not-allowed; }
+select option { background: var(--color-white); color: var(--color-ink); font-weight: 500; }
+select option:checked { background: var(--color-sand); }
+/* light chevron on dark/filled selects (e.g. checklist status chips) */
+select.bg-blue, select.bg-red, select.bg-green, select.bg-ink {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1.5 1.5 7 7l5.5-5.5' fill='none' stroke='%23efdfbd' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+/* date pickers to match */
+input[type="date"].input { cursor: pointer; }
+input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: .75; filter: invert(10%) sepia(40%) saturate(2000%) hue-rotate(230deg); }

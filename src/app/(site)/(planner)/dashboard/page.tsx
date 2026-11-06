@@ -12,7 +12,7 @@ import { runDueReminders } from "@/lib/reminders";
 import { CountdownDisplay } from "@/components/planner/Countdown";
 import { StatusChip } from "@/components/ui/badges";
 import { Picture } from "@/components/art/CraftArt";
-import { Bunting, GiftBox, Lanterns } from "@/components/three/Lazy";
+import { Bunting, GiftBox } from "@/components/three/Lazy";
 
 export const metadata = { title: "Dashboard" };
 
@@ -40,7 +40,6 @@ export default async function Dashboard() {
     <div className="pb-10">
       {/* HERO */}
       <section className="dot-bg relative overflow-hidden text-sand">
-        <Lanterns count={20} />
         <Bunting count={16} className="relative h-14" />
         <div className="wrap relative grid gap-8 pb-10 pt-2 lg:grid-cols-[1.3fr_1fr] lg:items-end">
           <div className="min-w-0">

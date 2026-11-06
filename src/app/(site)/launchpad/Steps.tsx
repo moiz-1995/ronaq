@@ -6,6 +6,7 @@ import { finishLaunchpad, launchpadChecklist, launchpadDates, launchpadSkipTo } 
 import { FormMessage, Submit } from "@/components/ui/form";
 import { CraftArt } from "@/components/art/CraftArt";
 import { Confetti } from "@/components/ui/Confetti";
+import { GuestPicker } from "@/components/planner/GuestPicker";
 
 type Tpl = { slug: string; name: string; items: { label: string; categorySlug?: string }[] };
 
@@ -24,6 +25,7 @@ export function ChecklistStep({ templates, cats, existing, initialTemplate }: { 
       <section>
         <h2 className="font-display text-xl">1. Start from a template</h2>
         <p className="text-sm text-mute">Nothing is mandatory. Untick what you don&apos;t need.</p>
+        <p className="mt-3 inline-flex items-center gap-2 rounded-xl border-2 border-ink bg-sun px-3 py-2 text-sm font-bold">✦ These are just templates to get you started. Ap ki ronaq, ap ki marzi! Add, remove or rename anything.</p>
         <div className="mt-3 flex flex-wrap gap-2" role="radiogroup" aria-label="Templates">
           {templates.map((x) => (
             <label key={x.slug} className="check"><input type="radio" name="template" value={x.slug} checked={tpl === x.slug} onChange={() => setTpl(x.slug)} className="sr-only" /> {x.name}</label>
@@ -72,9 +74,9 @@ export function ChecklistStep({ templates, cats, existing, initialTemplate }: { 
         </div>
       </section>
       <FormMessage state={state} />
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Submit pendingText="Saving…">Save &amp; continue</Submit>
-        <button type="button" className="btn btn-ghost" disabled={pending} onClick={() => start(() => launchpadSkipTo(2))}>Skip this step</button>
+        <button type="button" className="btn btn-sm" disabled={pending} onClick={() => start(() => launchpadSkipTo(2))}>Skip for now →</button>
       </div>
     </form>
   );
@@ -93,7 +95,7 @@ export function DatesStep({ types, ev }: { types: { value: string; label: string
       <div className="card grid gap-5 bg-white p-5 sm:p-7">
         <div className="dot-bg rounded-2xl p-5 text-sand">
           <p className="text-xs uppercase tracking-widest text-sand/60">Your dashboard will say</p>
-          <p className="font-display text-[clamp(1.8rem,5vw,2.8rem)] leading-none text-[#ff6b72]">{label.trim() ? `${label.trim()} ki Ronaq` : "Apki Ronaq"}</p>
+          <p className="font-display text-[clamp(1.8rem,5vw,2.8rem)] leading-none text-[#ff6b72]">{label.trim() ? `${label.trim()} ki Ronaq` : "Ap ki Ronaq"}</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="field sm:col-span-2"><label className="label" htmlFor="name">Event name</label><input id="name" name="name" className="input" required defaultValue={ev?.name ?? ""} placeholder="e.g. Ayesha & Bilal's wedding" /></div>
@@ -105,9 +107,8 @@ export function DatesStep({ types, ev }: { types: { value: string; label: string
           </div>
           <div className="field"><label className="label" htmlFor="label">Heading word</label><input id="label" name="label" className="input" value={label} maxLength={28} onChange={(e) => setLabel(e.target.value)} placeholder="Shaadi" /><p className="hint">Appears as “{label || "…"} ki Ronaq”.</p></div>
           <div className="field"><label className="label" htmlFor="date">Date</label><input id="date" name="date" type="date" className="input" defaultValue={ev?.date ?? ""} /><p className="hint">Not sure yet? Leave it blank and add it later.</p></div>
-          <div className="field"><label className="label" htmlFor="time">Time (optional)</label><input id="time" name="time" type="time" className="input" defaultValue={ev?.time ?? ""} /></div>
           <div className="field"><label className="label" htmlFor="location">Location (optional)</label><input id="location" name="location" className="input" defaultValue={ev?.location ?? ""} placeholder="e.g. Marquee on GT Road" /></div>
-          <div className="field"><label className="label" htmlFor="guestCount">Guests (optional)</label><input id="guestCount" name="guestCount" inputMode="numeric" className="input" defaultValue={ev?.guestCount ?? ""} /></div>
+          <GuestPicker defaultValue={ev?.guestCount} label="Guests (optional)" />
           <div className="field"><label className="label" htmlFor="budget">Overall budget, PKR (optional)</label><input id="budget" name="budget" inputMode="numeric" className="input" defaultValue={ev?.budget ?? ""} /></div>
           <div className="field sm:col-span-2"><label className="label" htmlFor="description">Notes (optional)</label><textarea id="description" name="description" className="input" defaultValue={ev?.description ?? ""} /></div>
         </div>
@@ -128,9 +129,9 @@ export function DatesStep({ types, ev }: { types: { value: string; label: string
         </div>
       </div>
       <FormMessage state={state} />
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Submit pendingText="Saving…">Save &amp; continue</Submit>
-        <button type="button" className="btn btn-ghost" disabled={pending} onClick={() => start(() => launchpadSkipTo(3))}>I&apos;ll add the date later</button>
+        <button type="button" className="btn btn-sm" disabled={pending} onClick={() => start(() => launchpadSkipTo(3))}>Skip, I&apos;ll add it later →</button>
       </div>
     </form>
   );
