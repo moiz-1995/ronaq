@@ -143,6 +143,7 @@ export const vendors = sqliteTable(
     whatsapp: text("whatsapp"),
     email: text("email"),
     revealContact: integer("reveal_contact", { mode: "boolean" }).notNull().default(false),
+    socials: json<Partial<Record<"instagram" | "facebook" | "tiktok" | "youtube" | "website", string>>>("socials").default({}),
     coverImage: text("cover_image"),
     logoImage: text("logo_image"),
     workingHours: text("working_hours"),

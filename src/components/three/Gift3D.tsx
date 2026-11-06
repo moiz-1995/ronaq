@@ -4,7 +4,7 @@ import { Float, PresentationControls } from "@react-three/drei";
 import { useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
-const RED = "#e0262f", BLUE = "#1f4fe0", SAND = "#eef1e8", SUN = "#ffc93c", PINK = "#ff2e88";
+const RED = "#e0262f", BLUE = "#1f4fe0", SAND = "#efdfbd", SUN = "#ffc93c", PINK = "#ff2e88";
 
 function Box({ open }: { open: boolean }) {
   const lid = useRef<THREE.Group>(null);

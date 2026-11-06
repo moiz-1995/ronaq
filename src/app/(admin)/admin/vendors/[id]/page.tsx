@@ -50,7 +50,7 @@ export default async function AdminVendor({ params }: { params: Promise<{ id: st
           <section className="rounded-2xl border-2 border-ink/10 bg-white p-5">
             <h2 className="font-display">Profile</h2>
             <div className="mt-3 grid gap-4 sm:grid-cols-[220px_1fr]">
-              <div className="aspect-[4/3] overflow-hidden rounded-xl border-2 border-ink"><Picture src={v.coverImage} alt="Cover" fallbackKind={cats.find((x) => x.id === services[0]?.categoryId)?.art} seed={7} className="h-full w-full" /></div>
+              <div className="aspect-[4/3] overflow-hidden rounded-xl border-2 border-ink"><Picture src={v.coverImage} alt="Cover" fallbackKind={cats.find((x) => x.id === services[0]?.categoryId)?.art} seed={7} ratio={4 / 3} className="h-full w-full" /></div>
               <dl className="grid gap-1 text-sm">
                 <div><dt className="inline text-mute">Description: </dt><dd className="inline">{v.description ?? "—"}</dd></div>
                 <div><dt className="inline text-mute">Type: </dt><dd className="inline">{v.businessType ?? "—"}, {v.experienceYears ?? "?"} yrs</dd></div>

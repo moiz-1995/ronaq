@@ -101,7 +101,7 @@ src/
     art/               procedural truck-art craft illustrations
     market/ vendor/ planner/ inbox/ admin/ ui/
   db/
-    schema.ts          20 tables: users, vendors, services, attributes, events, checklist,
+    schema.ts          25 tables: users, vendors, services, attributes, events, checklist,
                        inquiries, messages, reviews, reports, audit log, analytics…
     catalog.ts         launch categories, attributes, cities and areas, event templates
   lib/

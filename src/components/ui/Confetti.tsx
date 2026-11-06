@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 
-const COLS = ["#e0262f", "#1f4fe0", "#eef1e8", "#ff2e88", "#00a99d", "#ffc93c"];
+const COLS = ["#e0262f", "#1f4fe0", "#efdfbd", "#ff2e88", "#00a99d", "#ffc93c"];
 
 /** One celebratory burst, drawn on a canvas that covers its parent. Skipped for reduced motion. */
 export function Confetti({ pieces = 140 }: { pieces?: number }) {

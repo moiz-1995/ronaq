@@ -21,7 +21,7 @@ export function VendorCard({ data, saved, seed = 0, sponsored = false }: { data:
         <div className="absolute right-3 top-3 z-10"><SaveButton vendorId={v.id} saved={saved} /></div>
         <Link href={`/v/${v.slug}`} className="block focus-visible:outline-offset-[-3px]">
           <div className="relative aspect-[4/3] overflow-hidden rounded-t-[19px] border-b-[3px] border-ink">
-            <Picture src={cover} alt={`${v.name} cover`} fallbackKind={category?.art ?? "henna"} seed={seed + 11} className="h-full w-full" />
+            <Picture src={cover} alt={`${v.name} cover`} fallbackKind={category?.art ?? "henna"} seed={seed + 11} ratio={4 / 3} className="h-full w-full" />
             {cover && !cover.startsWith("art:") && <span className="absolute bottom-2 right-2 rounded-full bg-ink px-2 py-1 text-[10px] font-medium text-sand">Vendor&apos;s own cover</span>}
           </div>
           <div className="grid gap-1 p-4">

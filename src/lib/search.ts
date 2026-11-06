@@ -1,10 +1,11 @@
 import "server-only";
-import { and, eq, inArray, like, or } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db, schema as s } from "@/db";
 import type { Attribute, PricingModel } from "@/db/schema";
 import { comparePrice } from "./price";
 import { servesArea } from "./domain";
 import { getAreas } from "./queries";
+import { parseQuery, wordMatches } from "./searchTerms";
 
 export type SearchParams = {
   q?: string;
@@ -30,32 +31,45 @@ export async function searchVendors(p: SearchParams, attrDefs: Attribute[] = [])
   if (p.city) conds.push(eq(s.vendors.cityId, p.city));
   if (p.category) conds.push(eq(s.vendorServices.categoryId, p.category));
   const q = p.q?.trim();
-  if (q) {
-    const pat = `%${q.replace(/[%_]/g, "")}%`;
-    const catHits = await db.select({ id: s.categories.id }).from(s.categories).where(like(s.categories.name, pat));
-    conds.push(
-      or(
-        like(s.vendors.name, pat),
-        like(s.vendors.description, pat),
-        like(s.vendorServices.title, pat),
-        like(s.vendorServices.description, pat),
-        ...(catHits.length ? [inArray(s.vendorServices.categoryId, catHits.map((c) => c.id))] : []),
-      )!,
-    );
-  }
   const rows = await db
     .select({ vendor: s.vendors, service: s.vendorServices })
     .from(s.vendorServices)
     .innerJoin(s.vendors, eq(s.vendors.id, s.vendorServices.vendorId))
     .where(and(...conds));
 
-  // one row per vendor: the best-matching service
-  const byVendor = new Map<string, (typeof rows)[number]>();
-  for (const r of rows) if (!byVendor.has(r.vendor.id)) byVendor.set(r.vendor.id, r);
-  let list = [...byVendor.values()];
-
   const areas = await getAreas();
   const areaById = new Map(areas.map((a) => [a.id, a]));
+
+  // Keyword search: every word must match the vendor's text, area or service details, or point to its
+  // category via a synonym ("photographers" → Photography). If nothing matches every word, fall back to
+  // the best partial matches so a slightly-off query still shows something useful.
+  const hits = new Map<string, number>(); // row key → words matched
+  let rowsForQuery = rows;
+  if (q) {
+    const parsed = parseQuery(q);
+    const cats = await db.select({ id: s.categories.id, slug: s.categories.slug, name: s.categories.name }).from(s.categories);
+    const catById = new Map(cats.map((c) => [c.id, c]));
+    const wordSlugs = parsed.words.map((w) => new Set(parseQuery(w.raw).categorySlugs));
+    const scored = rows.map((r) => {
+      const cat = catById.get(r.service.categoryId);
+      const attrText = Object.values(r.service.attributes ?? {}).flat().filter((x) => typeof x === "string").join(" ");
+      const text = [r.vendor.name, r.vendor.description, r.service.title, r.service.description, cat?.name, areaById.get(r.vendor.areaId ?? "")?.name, attrText].filter(Boolean).join(" ");
+      const n = parsed.words.filter((w, i) => wordMatches(text, [w.raw, ...w.variants]) || (!!cat && wordSlugs[i].has(cat.slug))).length;
+      return { r, n };
+    });
+    const all = scored.filter((x) => x.n === parsed.words.length && x.n > 0);
+    const best = all.length ? all : scored.filter((x) => x.n > 0 && x.n === Math.max(...scored.map((y) => y.n)));
+    rowsForQuery = best.map((x) => x.r);
+    for (const x of best) hits.set(x.r.vendor.id + x.r.service.id, x.n);
+  }
+
+  // one row per vendor: the best-matching service
+  const byVendor = new Map<string, (typeof rows)[number]>();
+  for (const r of rowsForQuery) {
+    const prev = byVendor.get(r.vendor.id);
+    if (!prev || (hits.get(r.vendor.id + r.service.id) ?? 0) > (hits.get(prev.vendor.id + prev.service.id) ?? 0)) byVendor.set(r.vendor.id, r);
+  }
+  let list = [...byVendor.values()];
   const target = p.area ? areaById.get(p.area) : undefined;
 
   if (target) {

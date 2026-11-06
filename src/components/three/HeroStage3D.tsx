@@ -4,7 +4,7 @@ import { Float, Line, PresentationControls, Sparkles, ContactShadows } from "@re
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 
-const INK = "#1b1340", SAND = "#eef1e8", RED = "#e0262f", BLUE = "#1f4fe0", SUN = "#ffc93c", HENNA = "#d0662a", PINK = "#ff2e88";
+const INK = "#1b1340", SAND = "#efdfbd", RED = "#e0262f", BLUE = "#1f4fe0", SUN = "#ffc93c", HENNA = "#d0662a", PINK = "#ff2e88";
 
 /** Smoothly grows the active model in and shrinks the others out. */
 function Morph({ active, children, spin = 0 }: { active: boolean; children: React.ReactNode; spin?: number }) {

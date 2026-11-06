@@ -4,7 +4,7 @@ import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { Line } from "@react-three/drei";
 
-const COLORS = ["#e0262f", "#eef1e8", "#1f4fe0", "#ff2e88", "#eef1e8", "#00a99d"];
+const COLORS = ["#e0262f", "#efdfbd", "#1f4fe0", "#ff2e88", "#efdfbd", "#00a99d"];
 
 function Flags({ n }: { n: number }) {
   const refs = useRef<(THREE.Group | null)[]>([]);

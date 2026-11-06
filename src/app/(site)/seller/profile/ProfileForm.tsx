@@ -3,8 +3,10 @@ import { useActionState, useState } from "react";
 import { ImagePlus } from "lucide-react";
 import { saveVendorProfile } from "@/app/actions/seller";
 import { FormMessage, Submit } from "@/components/ui/form";
-import { Picture } from "@/components/art/CraftArt";
+import { Picture, VendorLogo } from "@/components/art/CraftArt";
 import type { Vendor } from "@/db/schema";
+import { SOCIALS } from "@/lib/socials";
+import { SocialIcon } from "@/components/vendor/SocialIcon";
 
 type Props = {
   v: Vendor & { serviceAreaIds: string[]; modes: string[] };
@@ -29,12 +31,12 @@ export function ProfileForm({ v, art, cities, areas, businessTypes, modes }: Pro
         <p className="mt-1 text-sm text-mute">Without a cover, your card shows an illustration of your craft. Upload a photo of your best work or your logo to stand out. JPG, PNG or WebP, up to 5 MB.</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_160px]">
           <label className="group relative block aspect-[16/7] cursor-pointer overflow-hidden rounded-2xl border-[3px] border-ink">
-            {coverPreview ? <img src={coverPreview} alt="New cover preview" className="h-full w-full object-cover" /> : <Picture src={v.coverImage} alt="Current cover" fallbackKind={art} seed={7} className="h-full w-full" />}
+            {coverPreview ? <img src={coverPreview} alt="New cover preview" className="h-full w-full object-cover" /> : <Picture src={v.coverImage} alt="Current cover" fallbackKind={art} seed={7} ratio={16 / 7} className="h-full w-full" />}
             <span className="absolute inset-0 grid place-items-center bg-ink/0 text-sand opacity-0 transition group-hover:bg-ink/50 group-hover:opacity-100"><span className="flex items-center gap-2 font-bold"><ImagePlus /> Change cover</span></span>
             <input type="file" name="cover" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) setCoverPreview(URL.createObjectURL(f)); }} />
           </label>
           <label className="group relative block aspect-square cursor-pointer overflow-hidden rounded-2xl border-[3px] border-ink">
-            {logoPreview ? <img src={logoPreview} alt="New logo preview" className="h-full w-full object-cover" /> : <Picture src={v.logoImage} alt="Current logo" fallbackKind={art} seed={1} className="h-full w-full" />}
+            {logoPreview ? <img src={logoPreview} alt="New logo preview" className="h-full w-full object-cover" /> : <VendorLogo src={v.logoImage} name={v.name} className="h-full w-full" />}
             <span className="absolute inset-0 grid place-items-center bg-ink/0 text-sand opacity-0 transition group-hover:bg-ink/50 group-hover:opacity-100"><span className="text-sm font-bold">Change logo</span></span>
             <input type="file" name="logo" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) setLogoPreview(URL.createObjectURL(f)); }} />
           </label>
@@ -85,6 +87,16 @@ export function ProfileForm({ v, art, cities, areas, businessTypes, modes }: Pro
           <input type="checkbox" name="revealContact" defaultChecked={v.revealContact} className="mt-0.5 h-4 w-4 accent-red" />
           <span><b>Show my phone and WhatsApp to signed-in families.</b> Off by default. When off, families can only message you through Ronaq.</span>
         </label>
+      </section>
+
+      <section className="card grid gap-4 bg-white p-5 sm:grid-cols-2 sm:p-6">
+        <div className="sm:col-span-2"><h2 className="font-display text-lg">Find me online</h2><p className="mt-1 text-sm text-mute">Optional. Families see these as buttons on your profile. A handle like @yourstudio is fine.</p></div>
+        {SOCIALS.map((sdef) => (
+          <div key={sdef.key} className="field">
+            <label className="label flex items-center gap-2" htmlFor={`so-${sdef.key}`}><SocialIcon kind={sdef.key} size={16} /> {sdef.label}</label>
+            <input id={`so-${sdef.key}`} name={`social_${sdef.key}`} className="input" defaultValue={v.socials?.[sdef.key] ?? ""} placeholder={sdef.placeholder} inputMode="url" autoComplete="off" />
+          </div>
+        ))}
       </section>
 
       <FormMessage state={state} />

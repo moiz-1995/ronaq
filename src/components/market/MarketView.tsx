@@ -10,6 +10,7 @@ import { parseSearchParams, recordSearch, searchVendors } from "@/lib/search";
 import { VendorCard } from "@/components/vendor/VendorCard";
 import { Bunting, GiftBox } from "@/components/three/Lazy";
 import { Filters, SortSelect } from "./Filters";
+import { ActiveFilters } from "./ActiveFilters";
 import { CraftArt } from "@/components/art/CraftArt";
 import { getSetting } from "@/lib/settings";
 
@@ -89,26 +90,25 @@ export async function MarketView({ searchParams, category }: { searchParams: Rec
         )}
         {priority.length > 0 && <p className="-mt-3 mb-5 text-sm text-mute">★ Still needed on your checklist</p>}
 
-        <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
-          <aside>
-            <Suspense>
-              <Filters cities={cities} areas={areas} categories={categories} attributes={attrs} fixedCategory={category} />
-            </Suspense>
-          </aside>
+        <div>
           <div className="min-w-0">
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-              <p className="font-bold" aria-live="polite">{result.total} {result.total === 1 ? "vendor" : "vendors"}</p>
+              <div className="flex flex-wrap items-center gap-3">
+                <Suspense><Filters cities={cities} areas={areas} categories={categories} attributes={attrs} fixedCategory={category} /></Suspense>
+                <p className="font-bold" aria-live="polite">{result.total} {result.total === 1 ? "vendor" : "vendors"}{params.q ? <> for “{params.q}”</> : null}</p>
+              </div>
               <Suspense><SortSelect /></Suspense>
             </div>
+            <ActiveFilters searchParams={searchParams} basePath={category ? `/c/${category.slug}` : "/marketplace"} cities={cities} areas={areas} categories={categories} attrs={attrs} />
             {sponsored.length > 0 && (
               <section aria-label="Sponsored" className="mb-8 rounded-3xl border-2 border-dashed border-sun bg-sun/10 p-4">
                 <p className="mb-3 text-xs font-bold uppercase tracking-wider text-mute">Sponsored · paid placement, not a ranking</p>
-                <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">{sponsored.map((d, i) => <VendorCard key={d.vendor.id} data={d} saved={saved.has(d.vendor.id)} seed={i + 90} sponsored />)}</div>
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{sponsored.map((d, i) => <VendorCard key={d.vendor.id} data={d} saved={saved.has(d.vendor.id)} seed={i + 90} sponsored />)}</div>
               </section>
             )}
             {params.sort === "price" &&<p className="mb-4 rounded-xl bg-sand px-3 py-2 text-sm">Sorted by listed starting price. Vendors who only give custom quotes appear last.</p>}
             {cards.length ? (
-              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {cards.map((d, i) => <VendorCard key={d.vendor.id} data={d} saved={saved.has(d.vendor.id)} seed={i + (result.page - 1) * 12} />)}
               </div>
             ) : (

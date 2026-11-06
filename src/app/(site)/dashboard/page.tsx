@@ -172,7 +172,7 @@ export default async function Dashboard() {
             <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {savedCards.map((d, i) => (
                 <li key={d.vendor.id}><Link href={`/v/${d.vendor.slug}`} className="block overflow-hidden rounded-2xl border-[3px] border-ink transition hover:-translate-y-1">
-                  <div className="aspect-[4/3]"><Picture src={d.vendor.coverImage} alt="" fallbackKind={d.category?.art} seed={i + 40} className="h-full w-full" /></div>
+                  <div className="aspect-[4/3]"><Picture src={d.vendor.coverImage} alt="" fallbackKind={d.category?.art} seed={i + 40} ratio={4 / 3} className="h-full w-full" /></div>
                   <p className="truncate border-t-[3px] border-ink bg-white p-2 text-sm font-bold">{d.vendor.name}</p>
                 </Link></li>
               ))}

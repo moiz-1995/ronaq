@@ -1,6 +1,6 @@
 import { BadgeCheck, Phone, Mail, Star, ShieldCheck } from "lucide-react";
 
-const BULBS = ["#ffc93c", "#e0262f", "#1f4fe0", "#ffc93c", "#eef1e8", "#e0262f", "#1f4fe0"];
+const BULBS = ["#ffc93c", "#e0262f", "#1f4fe0", "#ffc93c", "#efdfbd", "#e0262f", "#1f4fe0"];
 const POINTS: [number, number][] = [[2, 40], [5, 25], [14, 14], [26, 21], [38, 12], [51, 13], [64, 15]];
 
 /** Founding vendor badge with a string of lights draped over its top-left corner. */

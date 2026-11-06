@@ -9,6 +9,7 @@ import { audit, notify, track } from "@/lib/track";
 import { completeness, MATERIAL_FIELDS } from "@/lib/domain";
 import { saveImage, UploadError } from "@/lib/storage";
 import { getAttributes, getCategories } from "@/lib/queries";
+import { SOCIALS, normalizeSocial, type Socials } from "@/lib/socials";
 
 type Result = { error?: string; message?: string; ok?: boolean } | undefined;
 const str = (v: FormDataEntryValue | null, max = 200) => { const x = String(v ?? "").trim().slice(0, max); return x || null; };
@@ -76,6 +77,16 @@ export async function saveVendorProfile(_: unknown, form: FormData): Promise<Res
     revealContact: form.get("revealContact") === "on", workingHours: str(form.get("workingHours"), 60),
     advanceNoticeDays: int(form.get("advanceNoticeDays")), capacity: int(form.get("capacity")), updatedAt: new Date(),
   };
+  const socials: Socials = {};
+  for (const sdef of SOCIALS) {
+    try {
+      const v = normalizeSocial(sdef.key, String(form.get(`social_${sdef.key}`) ?? ""));
+      if (v) socials[sdef.key] = v;
+    } catch (e) {
+      return { error: (e as Error).message };
+    }
+  }
+  next.socials = socials;
   try {
     const cover = form.get("cover") as File | null;
     if (cover && cover.size) next.coverImage = await saveImage(cover, "covers");

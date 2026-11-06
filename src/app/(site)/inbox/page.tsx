@@ -5,7 +5,7 @@ import { requireUser } from "@/lib/auth";
 import { timeAgo } from "@/lib/time";
 import { INQUIRY_STATUS_LABELS } from "@/lib/domain";
 import { StatusChip } from "@/components/ui/badges";
-import { Picture } from "@/components/art/CraftArt";
+import { VendorLogo } from "@/components/art/CraftArt";
 import { getAllCategories } from "@/lib/queries";
 import { GiftBox } from "@/components/three/Lazy";
 
@@ -37,7 +37,7 @@ export default async function InboxPage() {
             return (
               <li key={r.id}>
                 <Link href={`/inbox/${r.id}`} className={`card flex items-center gap-4 p-4 transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-ink)] ${r.consumerUnread ? "bg-blue-soft" : "bg-white"}`}>
-                  <div className="h-14 w-14 flex-none overflow-hidden rounded-xl border-2 border-ink"><Picture src={v.logoImage ?? v.coverImage} alt="" fallbackKind={cat?.art} seed={2} className="h-full w-full" /></div>
+                  <div className="h-14 w-14 flex-none overflow-hidden rounded-xl border-2 border-ink"><VendorLogo src={v.logoImage} name={v.name} className="h-full w-full" /></div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <p className="truncate font-bold">{v.name}</p>

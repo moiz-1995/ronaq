@@ -63,7 +63,7 @@ export function SellerWizard({ user, cities, areas, cats, businessTypes, modes, 
                 return (
                   <button type="button" key={c.slug} onClick={() => toggle("categories", c.slug)} aria-pressed={on}
                     className={`overflow-hidden rounded-2xl border-[3px] text-left transition ${on ? "border-red shadow-[4px_4px_0_var(--color-red)]" : "border-ink"}`}>
-                    <div className="aspect-[5/3]"><CraftArt kind={c.art} seed={i * 3} className="h-full w-full" /></div>
+                    <div className="aspect-[5/3]"><CraftArt kind={c.art} seed={i * 3} ratio={5 / 3} className="h-full w-full" /></div>
                     <p className={`border-t-[3px] p-2 font-display text-xs ${on ? "border-red bg-red text-sand" : "border-ink bg-white"}`}>{on ? "✓ " : ""}{c.name}</p>
                   </button>
                 );

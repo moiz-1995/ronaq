@@ -3,7 +3,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 
-const COLS = ["#e0262f", "#1f4fe0", "#ffc93c", "#ff2e88", "#00a99d", "#eef1e8"];
+const COLS = ["#e0262f", "#1f4fe0", "#ffc93c", "#ff2e88", "#00a99d", "#efdfbd"];
 
 /** Floating fanoos lanterns that drift upward, sway, glow, and lean toward the pointer. */
 function Field({ count }: { count: number }) {

@@ -4,7 +4,7 @@ import { ContactShadows, Float, PresentationControls, Sparkles } from "@react-th
 import { useRef } from "react";
 import * as THREE from "three";
 
-const INK = "#1b1340", SAND = "#eef1e8", RED = "#e0262f", BLUE = "#1f4fe0", SUN = "#ffc93c", PINK = "#ff2e88", TEAL = "#00a99d";
+const INK = "#1b1340", SAND = "#efdfbd", RED = "#e0262f", BLUE = "#1f4fe0", SUN = "#ffc93c", PINK = "#ff2e88", TEAL = "#00a99d";
 
 function Lantern({ x, color, phase }: { x: number; color: string; phase: number }) {
   const g = useRef<THREE.Group>(null);

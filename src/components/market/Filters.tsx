@@ -1,6 +1,6 @@
 "use client";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 import type { Attribute, Area, Category, City } from "@/db/schema";
 import { SERVICE_MODES } from "@/db/catalog";
@@ -40,27 +40,37 @@ export function Filters({ cities, areas, categories, attributes, fixedCategory }
     router.push(`${path}?${keep}`, { scroll: false });
     setCity("");
   };
-  const count = [...sp.keys()].filter((k) => !["q", "sort", "page"].includes(k)).length;
+  const count = [...new Set([...sp.keys()].filter((k) => !["q", "sort", "page", "quote"].includes(k)))].length;
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+  }, [open]);
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className="btn btn-sm lg:hidden">
-        <SlidersHorizontal size={16} /> Filters{count ? ` (${count})` : ""}
+      <button type="button" onClick={() => setOpen(true)} aria-expanded={open} aria-controls="filter-drawer" className={`btn btn-sm ${count ? "btn-ink" : ""}`}>
+        <SlidersHorizontal size={16} /> Filters{count ? ` · ${count}` : ""}
       </button>
-      <div className={`${open ? "fixed inset-0 z-50 overflow-y-auto bg-ink/50 p-3" : "hidden"} lg:static lg:block lg:bg-transparent lg:p-0`} onClick={() => setOpen(false)}>
+      <div className={`fixed inset-0 z-50 transition-colors duration-300 ${open ? "bg-ink/55" : "pointer-events-none bg-transparent"}`} onClick={() => setOpen(false)} aria-hidden={!open}>
         <form
+          id="filter-drawer"
           ref={formRef}
+          role="dialog"
+          aria-modal="true"
           onClick={(e) => e.stopPropagation()}
-          onChange={(e) => { if (window.innerWidth >= 1024 && (e.target as HTMLElement).tagName !== "INPUT") apply(); }}
           onSubmit={(e) => { e.preventDefault(); apply(); setOpen(false); }}
-          className="card ml-auto grid max-w-sm gap-5 bg-white p-5 lg:sticky lg:top-24 lg:max-w-none"
+          className={`absolute inset-y-0 left-0 grid w-[min(380px,90vw)] content-start gap-5 overflow-y-auto border-r-4 border-ink bg-paper p-5 pb-[calc(20px+env(safe-area-inset-bottom,0px))] pt-[calc(20px+env(safe-area-inset-top,0px))] shadow-[8px_0_0_var(--color-red)] transition-transform duration-300 ease-out ${open ? "translate-x-0" : "-translate-x-[110%]"}`}
           aria-label="Filters"
         >
           <div className="flex items-center justify-between">
             <h2 className="font-display text-lg">Filters</h2>
             <div className="flex items-center gap-1">
               {count > 0 && <button type="button" onClick={clear} className="text-sm font-bold text-red underline">Clear all</button>}
-              <button type="button" onClick={() => setOpen(false)} className="rounded-lg p-1 hover:bg-sand lg:hidden" aria-label="Close filters"><X size={18} /></button>
+              <button type="button" onClick={() => setOpen(false)} className="rounded-lg p-1 hover:bg-sand" aria-label="Close filters"><X size={18} /></button>
             </div>
           </div>
           {sp.get("q") && <input type="hidden" name="q" value={sp.get("q")!} />}
@@ -135,7 +145,7 @@ export function Filters({ cities, areas, categories, attributes, fixedCategory }
             </fieldset>
           ))}
 
-          <button type="submit" className="btn btn-red w-full">Show results</button>
+          <div className="sticky -bottom-5 -mx-5 border-t-2 border-ink/10 bg-paper px-5 pb-1 pt-3"><button type="submit" className="btn btn-red w-full">Show results</button></div>
         </form>
       </div>
     </>

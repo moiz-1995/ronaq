@@ -6,7 +6,7 @@ import {
   addChecklistItem, addQuote, deleteItem, deleteQuote, linkVendor, moveItem, selectVendor, setItemStatus, toggleQuoteCommitted, unlinkVendor, updateChecklistItem,
 } from "@/app/actions/planner";
 import { FormMessage, Submit } from "@/components/ui/form";
-import { Picture } from "@/components/art/CraftArt";
+import { Picture, VendorLogo } from "@/components/art/CraftArt";
 import { STATUS_LABELS } from "@/lib/domain";
 import { pkr } from "@/lib/price";
 import { formatDate } from "@/lib/time";
@@ -83,7 +83,7 @@ function Row({ it, linked, quotes, cat, shortlist, cityId, first, last }: { it: 
             <ul className="grid gap-2">
               {linked.map((v) => (
                 <li key={v.id} className={`flex items-center gap-2 rounded-xl border-2 p-2 ${v.id === it.selectedVendorId ? "border-green bg-[#e5f6ea]" : "border-ink/15 bg-white"}`}>
-                  <span className="h-9 w-9 flex-none overflow-hidden rounded-lg border-2 border-ink"><Picture src={v.logoImage ?? v.coverImage} alt="" fallbackKind={cat?.art} seed={5} className="h-full w-full" /></span>
+                  <span className="h-9 w-9 flex-none overflow-hidden rounded-lg border-2 border-ink"><VendorLogo src={v.logoImage} name={v.name} className="h-full w-full" /></span>
                   <Link href={`/v/${v.slug}`} className="min-w-0 flex-1 truncate text-sm font-bold hover:underline">{v.name}</Link>
                   {v.id === it.selectedVendorId ? (
                     <button className="chip bg-green text-white" onClick={() => start(() => selectVendor(it.id, null))} title="Unselect">CHOSEN</button>

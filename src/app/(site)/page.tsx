@@ -86,7 +86,7 @@ export default async function Home() {
             {cats.map((c, i) => (
               <Link key={c.id} href={`/c/${c.slug}`} className="card group overflow-hidden shadow-[5px_5px_0_var(--color-ink)] transition hover:-translate-x-1 hover:-translate-y-1 hover:-rotate-1 hover:shadow-[8px_8px_0_var(--color-red)]">
                 <div className="aspect-[5/4] overflow-hidden border-b-[3px] border-ink">
-                  <CraftArt kind={c.art} seed={i * 5 + 2} className="h-full w-full transition-transform duration-500 group-hover:scale-110" />
+                  <CraftArt kind={c.art} seed={i * 5 + 2} ratio={5 / 4} className="h-full w-full transition-transform duration-500 group-hover:scale-105" />
                 </div>
                 <div className="p-3">
                   <p className="font-display text-[15px] leading-tight">{c.name}</p>

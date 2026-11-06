@@ -98,3 +98,42 @@ describe("service areas", () => {
     expect(servesArea({ cityId: "isb", servesWholeCity: false, serviceAreaIds: [], serviceRadiusKm: 5, areaLat: 33.695, areaLng: 73.014 }, target)).toBe(true);
   });
 });
+
+import { parseQuery, stems } from "@/lib/searchTerms";
+describe("search terms", () => {
+  it("maps plurals and trades to categories", () => {
+    expect(parseQuery("photographers").categorySlugs).toContain("photography");
+    expect(parseQuery("caterer").categorySlugs).toContain("catering");
+    expect(parseQuery("biryani daig").categorySlugs).toContain("catering");
+    expect(parseQuery("bridal parlour").categorySlugs).toContain("makeup-hair");
+    expect(parseQuery("dj for mehndi").categorySlugs).toEqual(expect.arrayContaining(["entertainment", "mehndi-henna"]));
+  });
+  it("drops filler words", () => {
+    expect(parseQuery("best cake in G-11").words.map((w) => w.raw)).toEqual(["cake", "g-11"]);
+  });
+  it("stems plurals", () => {
+    expect(stems("photographers")).toContain("photographer");
+    expect(stems("decorations")).toContain("decoration");
+  });
+});
+
+import { normalizeSocial, socialLabel } from "@/lib/socials";
+describe("vendor social links", () => {
+  it("turns handles into links", () => {
+    expect(normalizeSocial("instagram", "@hina.henna")).toBe("https://instagram.com/hina.henna");
+    expect(normalizeSocial("tiktok", "dholsajan")).toBe("https://www.tiktok.com/@dholsajan");
+  });
+  it("accepts full links and bare domains", () => {
+    expect(normalizeSocial("facebook", "facebook.com/RonaqEvents")).toBe("https://facebook.com/RonaqEvents");
+    expect(normalizeSocial("website", "sugarandsaffron.pk")).toBe("https://sugarandsaffron.pk");
+  });
+  it("rejects the wrong site and junk", () => {
+    expect(() => normalizeSocial("instagram", "https://evil.example/x")).toThrow();
+    expect(() => normalizeSocial("website", "javascript:alert(1)")).toThrow();
+    expect(normalizeSocial("youtube", "")).toBeNull();
+  });
+  it("labels links", () => {
+    expect(socialLabel("instagram", "https://instagram.com/hina.henna")).toBe("@hina.henna");
+    expect(socialLabel("website", "https://www.noorlens.pk")).toBe("noorlens.pk");
+  });
+});

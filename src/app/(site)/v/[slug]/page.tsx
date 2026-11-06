@@ -10,12 +10,14 @@ import { todayPKT, formatDate, timeAgo } from "@/lib/time";
 import { track } from "@/lib/track";
 import { getSetting } from "@/lib/settings";
 import { reviewEligibility } from "@/lib/domain";
-import { Picture } from "@/components/art/CraftArt";
+import { Picture, VendorLogo } from "@/components/art/CraftArt";
 import { FoundingBadge, Stars, StatusChip, VendorDeclared, VerificationBadges } from "@/components/ui/badges";
 import { SaveButton } from "@/components/vendor/SaveButton";
 import { Gallery } from "@/components/vendor/Gallery";
 import { ReportButton } from "@/components/vendor/ReportButton";
 import { ContactReveal } from "@/components/vendor/ContactReveal";
+import { SocialIcon } from "@/components/vendor/SocialIcon";
+import { SOCIALS, socialLabel, type SocialKey } from "@/lib/socials";
 
 const MODES: Record<string, { label: string; icon: typeof Truck }> = {
   home_visit: { label: "Comes to your home", icon: HomeIcon },
@@ -68,6 +70,7 @@ export default async function VendorPage({ params }: { params: Promise<{ slug: s
   }
 
   const contactHref = `/v/${v.slug}/contact`;
+  const socialLinks = SOCIALS.map((d) => [d.key, v.socials?.[d.key]] as const).filter((x): x is readonly [SocialKey, string] => !!x[1]);
   const cover = v.coverImage;
   // 14-day availability strip
   const today = todayPKT();
@@ -84,14 +87,14 @@ export default async function VendorPage({ params }: { params: Promise<{ slug: s
       {/* Cover */}
       <section className="relative">
         <div className="relative h-[clamp(200px,34vw,380px)] overflow-hidden border-b-4 border-ink">
-          <Picture src={cover} alt={`${v.name} cover`} fallbackKind={mainCat?.art ?? "henna"} seed={7} className="h-full w-full" />
+          <Picture src={cover} alt={`${v.name} cover`} fallbackKind={mainCat?.art ?? "henna"} seed={7} ratio={3.6} className="h-full w-full" />
           <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent" />
         </div>
         <div className="wrap relative -mt-20 grid gap-6 lg:grid-cols-[1fr_340px]">
           <div className="card card-shadow min-w-0 bg-white p-5 sm:p-7">
             <div className="flex flex-wrap items-start gap-4">
               <div className="h-20 w-20 flex-none overflow-hidden rounded-2xl border-[3px] border-ink bg-sand">
-                <Picture src={v.logoImage} alt={`${v.name} logo`} fallbackKind={mainCat?.art ?? "henna"} seed={1} className="h-full w-full" />
+                <VendorLogo src={v.logoImage} name={v.name} className="h-full w-full" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-3">
@@ -117,6 +120,21 @@ export default async function VendorPage({ params }: { params: Promise<{ slug: s
               <ul className="mt-5 flex flex-wrap gap-2">
                 {v.modes.map((m) => { const M = MODES[m]; if (!M) return null; const I = M.icon; return <li key={m} className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink px-3 py-1 text-sm font-medium"><I size={14} /> {M.label}</li>; })}
               </ul>
+            )}
+            {socialLinks.length > 0 && (
+              <div className="dashed-top mt-6 pt-4">
+                <p className="text-sm font-bold">Find them online</p>
+                <ul className="mt-2 flex flex-wrap gap-2">
+                  {socialLinks.map(([key, url]) => (
+                    <li key={key}>
+                      <a href={url} target="_blank" rel="noopener noreferrer nofollow ugc" className="inline-flex items-center gap-2 rounded-full border-2 border-ink bg-white px-3 py-1.5 text-sm font-bold shadow-[2px_2px_0_var(--color-ink)] transition hover:-translate-y-0.5 hover:bg-sand">
+                        <SocialIcon kind={key} size={16} /> {socialLabel(key, url)}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-xs text-mute">Links added by the vendor. They open outside Ronaq.</p>
+              </div>
             )}
           </div>
 

@@ -16,7 +16,7 @@ export function Bunting({ count, className = "h-24" }: { count?: number; classNa
 }
 
 function StaticBunting({ n }: { n: number }) {
-  const cols = ["#e0262f", "#eef1e8", "#1f4fe0", "#ff2e88", "#eef1e8", "#00a99d"];
+  const cols = ["#e0262f", "#efdfbd", "#1f4fe0", "#ff2e88", "#efdfbd", "#00a99d"];
   return (
     <svg viewBox={`0 0 ${n * 40} 60`} className="h-full w-full" preserveAspectRatio="none">
       <path d={`M0 6 Q${n * 20} 30 ${n * 40} 6`} stroke="#1b1340" strokeWidth={2} fill="none" />

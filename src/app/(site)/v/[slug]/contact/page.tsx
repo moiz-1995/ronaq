@@ -4,7 +4,7 @@ import { and, asc, eq } from "drizzle-orm";
 import { db, schema as s } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { track } from "@/lib/track";
-import { Picture } from "@/components/art/CraftArt";
+import { VendorLogo } from "@/components/art/CraftArt";
 import { getAllCategories } from "@/lib/queries";
 import { InquiryForm } from "./InquiryForm";
 
@@ -32,7 +32,7 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
     <div className="wrap max-w-3xl py-10">
       <Link href={`/v/${v.slug}`} className="text-sm font-bold text-blue underline">← Back to {v.name}</Link>
       <div className="mt-4 flex items-center gap-4">
-        <div className="h-16 w-16 overflow-hidden rounded-2xl border-[3px] border-ink"><Picture src={v.logoImage ?? v.coverImage} alt="" fallbackKind={cat?.art} seed={1} className="h-full w-full" /></div>
+        <div className="h-16 w-16 overflow-hidden rounded-2xl border-[3px] border-ink"><VendorLogo src={v.logoImage} name={v.name} className="h-full w-full" /></div>
         <div>
           <p className="kicker">Send an inquiry</p>
           <h1 className="h-display text-3xl">{v.name}</h1>

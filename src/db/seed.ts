@@ -12,6 +12,13 @@ const REMOTE = !!(process.env.DATABASE_AUTH_TOKEN ?? process.env.TURSO_AUTH_TOKE
 const ADMIN_PW = process.env.SEED_ADMIN_PASSWORD ?? (REMOTE ? "" : "ronaq-admin");
 const MOD_PW = process.env.SEED_MOD_PASSWORD ?? (REMOTE ? "" : "ronaq-mod");
 
+// Clearly-fake handles so demo vendors never point at a real person's account.
+const DEMO_SOCIALS: Record<string, Record<string, string>> = {
+  "Hina's Henna Studio": { instagram: "https://instagram.com/ronaq_demo_hina", facebook: "https://facebook.com/ronaq.demo.hina", tiktok: "https://www.tiktok.com/@ronaq_demo_hina" },
+  "Noor Lens Studio": { instagram: "https://instagram.com/ronaq_demo_noorlens", youtube: "https://youtube.com/@ronaq_demo_noorlens", website: "https://example.com/noor-lens" },
+  "Sugar & Saffron": { instagram: "https://instagram.com/ronaq_demo_sugarsaffron", website: "https://example.com/sugar-and-saffron" },
+};
+
 async function main() {
   if (!ADMIN_PW || !MOD_PW || (REMOTE && (ADMIN_PW.length < 12 || MOD_PW.length < 12))) throw new Error("Set SEED_ADMIN_PASSWORD and SEED_MOD_PASSWORD (12+ characters) when seeding a remote database.");
   // wipe (order doesn't matter in SQLite without FKs)
@@ -102,6 +109,7 @@ async function main() {
       approvedAt: new Date(Date.now() - (30 - i) * 86400000), createdById: ownerId ? null : admin.id,
       createdAt: new Date(Date.now() - (40 - i) * 86400000),
       workingHours: "10am – 9pm", advanceNoticeDays: 7, capacity: 2,
+      socials: DEMO_SOCIALS[v.name] ?? {},
     }).returning();
     vendorIds[v.name] = row.id;
     const [svc] = await db.insert(s.vendorServices).values({ vendorId: row.id, categoryId: catIds[v.cat], title: v.title, description: v.desc, pricingModel: v.model, priceAmount: v.price ?? null, attributes: v.attrs ?? {}, occasions: ["Wedding", "Mehndi"] }).returning();
