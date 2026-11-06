@@ -9,6 +9,9 @@ import { db, schema as s } from "@/db";
 import type { User } from "@/db/schema";
 
 const COOKIE = "ronaq_session";
+if (process.env.NODE_ENV === "production" && process.env.VERCEL && !process.env.AUTH_SECRET) {
+  throw new Error("AUTH_SECRET must be set in production.");
+}
 const secret = new TextEncoder().encode(process.env.AUTH_SECRET ?? "dev-only-secret-change-me-in-production-please");
 
 export async function hashPassword(p: string) {

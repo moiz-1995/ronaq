@@ -7,7 +7,13 @@ import type { PricingModel } from "./schema";
 
 const slugify = (x: string) => x.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
+// Remote (production) databases must get real staff passwords via env; local dev keeps the easy demo ones.
+const REMOTE = !!(process.env.DATABASE_AUTH_TOKEN ?? process.env.TURSO_AUTH_TOKEN);
+const ADMIN_PW = process.env.SEED_ADMIN_PASSWORD ?? (REMOTE ? "" : "ronaq-admin");
+const MOD_PW = process.env.SEED_MOD_PASSWORD ?? (REMOTE ? "" : "ronaq-mod");
+
 async function main() {
+  if (!ADMIN_PW || !MOD_PW || (REMOTE && (ADMIN_PW.length < 12 || MOD_PW.length < 12))) throw new Error("Set SEED_ADMIN_PASSWORD and SEED_MOD_PASSWORD (12+ characters) when seeding a remote database.");
   // wipe (order doesn't matter in SQLite without FKs)
   for (const t of [s.messages, s.inquiries, s.reviews, s.reports, s.notifications, s.quotes, s.reminders, s.checklistVendors, s.checklistItems, s.events, s.shortlist, s.availability, s.portfolioItems, s.vendorServices, s.vendors, s.templates, s.attributes, s.categories, s.areas, s.cities, s.tokens, s.users, s.auditLog, s.analyticsEvents, s.settings]) {
     await db.delete(t);
@@ -44,8 +50,8 @@ async function main() {
   ]);
 
   const hash = (p: string) => bcrypt.hashSync(p, 10);
-  const [admin] = await db.insert(s.users).values({ email: "admin@ronaq.pk", passwordHash: hash("ronaq-admin"), name: "Ronaq Ops", role: "admin", emailVerified: true, cityId: cityIds.islamabad, onboardedAt: new Date(), launchpadStep: 4 }).returning();
-  await db.insert(s.users).values({ email: "moderator@ronaq.pk", passwordHash: hash("ronaq-mod"), name: "Sana (Moderator)", role: "moderator", emailVerified: true, cityId: cityIds.islamabad, onboardedAt: new Date(), launchpadStep: 4 });
+  const [admin] = await db.insert(s.users).values({ email: "admin@ronaq.pk", passwordHash: hash(ADMIN_PW), name: "Ronaq Ops", role: "admin", emailVerified: true, cityId: cityIds.islamabad, onboardedAt: new Date(), launchpadStep: 4 }).returning();
+  await db.insert(s.users).values({ email: "moderator@ronaq.pk", passwordHash: hash(MOD_PW), name: "Sana (Moderator)", role: "moderator", emailVerified: true, cityId: cityIds.islamabad, onboardedAt: new Date(), launchpadStep: 4 });
   const [ayesha] = await db.insert(s.users).values({ email: "ayesha@example.com", passwordHash: hash("password123"), name: "Ayesha Khan", cityId: cityIds.rawalpindi, interests: ["mehndi-henna", "catering", "photography"], planningEvent: true, heardFrom: "Instagram", emailVerified: true, onboardedAt: new Date(), launchpadStep: 4 }).returning();
 
   type V = { name: string; cat: string; city: string; area: string; model: PricingModel; price?: number; title: string; desc: string; modes: string[]; rating: number; count: number; founding?: boolean; attrs?: Record<string, string | string[] | boolean | number>; years: number; owner?: string };
@@ -157,7 +163,7 @@ async function main() {
   for (let i = 0; i < rows.length; i += 500) await db.insert(s.analyticsEvents).values(rows.slice(i, i + 500));
 
   console.log(`Seeded ${CITIES.length} cities, ${CATEGORIES.length} categories, ${V.length} vendors.`);
-  console.log("Logins: admin@ronaq.pk / ronaq-admin · ayesha@example.com / password123 · hina@example.com / password123 (seller)");
+  console.log(`Logins: admin@ronaq.pk / ${ADMIN_PW} · moderator@ronaq.pk / ${MOD_PW} · ayesha@example.com / password123 · hina@example.com / password123 (seller)`);
 }
 
 main().then(() => process.exit(0)).catch((e) => { console.error(e); process.exit(1); });
