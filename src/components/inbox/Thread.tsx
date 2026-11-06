@@ -55,7 +55,7 @@ export async function Thread({ inq, role, title, subtitle }: { inq: Inquiry; rol
         })}
       </ol>
       <div className="border-t-[3px] border-ink p-3 sm:p-4">
-        {inq.status === "closed" ? <p className="text-center text-sm text-mute">You marked this conversation as done, so it's out of your active list. Tap <b>Reopen conversation</b> above to message again.</p> : <Composer inquiryId={inq.id} />}
+        {inq.status === "closed" ? <p className="text-center text-sm text-mute">You marked this conversation as done, so it&apos;s out of your active list. Tap <b>Reopen conversation</b> above to message again.</p> : <Composer inquiryId={inq.id} />}
         <p className="mt-2 flex items-start gap-1.5 text-[11px] text-mute"><Info size={13} className="mt-px flex-none" /> Replied doesn&apos;t mean booked. Ronaq doesn&apos;t guarantee price, availability or service. Done with this chat? Use <b>Mark as done</b> to tidy your inbox. It doesn&apos;t cancel anything.</p>
       </div>
     </div>

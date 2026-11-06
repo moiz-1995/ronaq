@@ -33,7 +33,6 @@ export default async function InboxPage() {
           {rows.map((r) => {
             const v = vendors.find((x) => x.id === r.vendorId)!;
             const last = lastMsgs.find((m) => m.inquiryId === r.id);
-            const cat = cats.find((c) => c.id === r.categoryId);
             return (
               <li key={r.id}>
                 <Link href={`/inbox/${r.id}`} className={`card flex items-center gap-4 p-4 transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-ink)] ${r.consumerUnread ? "bg-blue-soft" : "bg-white"}`}>
