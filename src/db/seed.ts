@@ -136,7 +136,7 @@ async function main() {
       await db.insert(s.quotes).values({ userId: ayesha.id, checklistItemId: item.id, vendorId: vendorIds["Ustad Rafiq Daig House"], vendorName: "Ustad Rafiq Daig House", amount: 507500, unit: "total", notes: "350 guests × 1,450. Includes zarda.", quoteDate: "2026-11-01", validUntil: "2026-11-30" });
     }
     if (label === "Bridal makeup") {
-      await db.update(s.checklistItems).set({ selectedVendorId: vendorIds["Glow by Zara"] }).where(eq(s.checklistItems.id, item.id));
+      await db.update(s.checklistItems).set({ selectedVendorId: vendorIds["Glow by Zara"], bookedAt: new Date() }).where(eq(s.checklistItems.id, item.id));
       await db.insert(s.checklistVendors).values({ checklistItemId: item.id, vendorId: vendorIds["Glow by Zara"] });
     }
   }

@@ -1,77 +1,11 @@
-// Large standalone celebration pieces for the home hero: a mehndi hand, a dhol and a birthday cake.
+// Large standalone celebration pieces for the home hero: mehndi hands, a dhol and a birthday cake.
 // Drawn for a dark background, with thick outlines and truck-art colours.
 
-const INK = "#1b1340", RED = "#d7141e", YEL = "#ffcc00", ORA = "#ff8a00", GRN = "#12924a", TEAL = "#00a19a", BLUE = "#1f4fe0", PINK = "#e5197f", CRM = "#fff3d6", HENNA = "#9c3d10", SKIN = "#f6d2a8";
-const f = (n: number) => Math.round(n * 100) / 100;
+const INK = "#1b1340", RED = "#d7141e", YEL = "#ffcc00", ORA = "#ff8a00", GRN = "#12924a", TEAL = "#00a19a", BLUE = "#1f4fe0", PINK = "#e5197f", CRM = "#fff3d6", HENNA = "#9c3d10";
 
-/** One hand (left, palm facing). Mirror it for the right hand. Henna in bridal style: tips, lattice bands, keri (paisley), vines, lace cuff. */
-function Hand() {
-  const fingers = [
-    { x: 8, y: 54, w: 17, h: 62 },
-    { x: 27, y: 30, w: 19, h: 82 },
-    { x: 48, y: 20, w: 20, h: 90 },
-    { x: 70, y: 32, w: 19, h: 78 },
-  ];
-  const sil = (
-    <>
-      {fingers.map((g, i) => <rect key={i} x={g.x} y={g.y} width={g.w} height={g.h} rx={g.w / 2} />)}
-      <rect x="6" y="92" width="86" height="84" rx="30" />
-      <rect x="84" y="106" width="19" height="58" rx="9.5" transform="rotate(30 94 156)" />
-      <rect x="20" y="158" width="60" height="60" rx="10" />
-    </>
-  );
-  return (
-    <g>
-      <g fill={INK} stroke={INK} strokeWidth={8} strokeLinejoin="round">{sil}</g>
-      <g fill={SKIN}>{sil}</g>
-      {/* fingertips + lattice bands + little vines */}
-      {fingers.map((g, i) => {
-        const cx = g.x + g.w / 2, r = g.w / 2;
-        const zig = Array.from({ length: 6 }, (_, k) => `${f(g.x + 2 + (k * (g.w - 4)) / 5)},${k % 2 ? g.y + 30 : g.y + 22}`).join(" ");
-        return (
-          <g key={i}>
-            <path d={`M${g.x} ${g.y + r} A${r} ${r} 0 0 1 ${g.x + g.w} ${g.y + r} V${g.y + r + 6} H${g.x} Z`} fill={HENNA} />
-            <g fill="none" stroke={HENNA} strokeWidth={1.8} strokeLinecap="round">
-              <path d={`M${g.x + 1} ${g.y + 20} H${g.x + g.w - 1} M${g.x + 1} ${g.y + 32} H${g.x + g.w - 1}`} />
-              <polyline points={zig} />
-              <path d={`M${cx} ${g.y + 38} q-5 5 0 10 q5 5 0 10`} />
-            </g>
-            <circle cx={cx} cy={g.y + 62} r={2} fill={HENNA} />
-          </g>
-        );
-      })}
-      {/* palm: keri (paisley) with petals, dots and a trailing vine */}
-      <g fill="none" stroke={HENNA} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M52 104 C30 108 24 140 44 152 C58 160 74 148 70 132 C67 120 60 112 52 104 Z" />
-        <path d="M51 116 C38 120 36 138 47 144 C55 148 63 141 61 132 C59 125 56 120 51 116 Z" />
-        <path d="M70 132 q14 -2 18 -14 M70 132 q12 8 6 22" />
-        {[0, 1, 2, 3, 4, 5].map((k) => <path key={k} d={`M${f(44 + 18 * Math.cos(-2.2 + k * 0.62))} ${f(132 + 22 * Math.sin(-2.2 + k * 0.62))} l${f(-6 * Math.cos(-2.2 + k * 0.62))} ${f(-6 * Math.sin(-2.2 + k * 0.62))}`} />)}
-        <path d="M34 156 q10 6 20 0 q10 6 20 0" />
-      </g>
-      <circle cx="49" cy="133" r="4" fill={HENNA} />
-      {[[18, 116], [16, 132], [86, 112], [28, 100], [80, 152]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r={2.2} fill={HENNA} />)}
-      {/* thumb */}
-      <g transform="rotate(30 94 156)">
-        <path d="M84 115.5 A9.5 9.5 0 0 1 103 115.5 V121 H84 Z" fill={HENNA} />
-        <path d="M85 128 H102 M85 136 H102" stroke={HENNA} strokeWidth={1.8} />
-      </g>
-      {/* lace cuff at the wrist */}
-      <path d="M22 168 q6 -7 12 0 q6 -7 12 0 q6 -7 12 0 q6 -7 12 0 q5 -6 9 0" fill="none" stroke={HENNA} strokeWidth={2.2} />
-      {[28, 40, 52, 64, 74].map((x) => <circle key={x} cx={x} cy={174} r={1.8} fill={HENNA} />)}
-      {/* churiyan (bangles) */}
-      {[RED, YEL, GRN, RED, YEL].map((c, i) => <rect key={i} x="17" y={182 + i * 7} width="66" height="7" rx="3.5" fill={c} stroke={INK} strokeWidth={2} />)}
-      {[30, 46, 62].map((x) => <circle key={x} cx={x} cy={192} r={1.6} fill="#fff" />)}
-    </g>
-  );
-}
-
+/** Bridal mehndi hands: artwork from the branding team, cut out with churiyan added. */
 export function MehndiHand() {
-  return (
-    <svg viewBox="0 0 240 230" className="h-full w-full" role="img" aria-label="Two hands decorated with bridal mehndi and bangles">
-      <g transform="translate(20 4) rotate(-10 54 120)"><Hand /></g>
-      <g transform="translate(220 4) scale(-1 1) rotate(-10 54 120)"><Hand /></g>
-    </svg>
-  );
+  return <img src="/art/mehndi-hands.webp" width={1000} height={1045} alt="Two hands decorated with bridal mehndi and bangles" className="h-full w-full object-contain" />;
 }
 
 export function DholArt() {

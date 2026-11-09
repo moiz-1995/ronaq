@@ -242,7 +242,8 @@ export async function setItemStatus(itemId: string, status: string) {
   const user = await requireUser("/events");
   if (!(checklistStatuses as readonly string[]).includes(status)) return;
   const { item } = await ownItem(user.id, itemId);
-  await db.update(s.checklistItems).set({ status: status as (typeof checklistStatuses)[number] }).where(eq(s.checklistItems.id, itemId));
+  const isBooked = status === "booked" || status === "completed";
+  await db.update(s.checklistItems).set({ status: status as (typeof checklistStatuses)[number], bookedAt: isBooked ? (item.bookedAt ?? new Date()) : null }).where(eq(s.checklistItems.id, itemId));
   await track("checklist_item_status_changed", { userId: user.id, props: { to: status } });
   refreshEvent(item.eventId);
 }
@@ -281,14 +282,14 @@ export async function unlinkVendor(itemId: string, vendorId: string) {
   const user = await requireUser("/events");
   const { item } = await ownItem(user.id, itemId);
   await db.delete(s.checklistVendors).where(and(eq(s.checklistVendors.checklistItemId, itemId), eq(s.checklistVendors.vendorId, vendorId)));
-  if (item.selectedVendorId === vendorId) await db.update(s.checklistItems).set({ selectedVendorId: null }).where(eq(s.checklistItems.id, itemId));
+  if (item.selectedVendorId === vendorId) await db.update(s.checklistItems).set({ selectedVendorId: null, bookedAt: null }).where(eq(s.checklistItems.id, itemId));
   refreshEvent(item.eventId);
 }
 
 export async function selectVendor(itemId: string, vendorId: string | null) {
   const user = await requireUser("/events");
   const { item } = await ownItem(user.id, itemId);
-  await db.update(s.checklistItems).set({ selectedVendorId: vendorId, status: vendorId ? (item.status === "completed" ? "completed" : "booked") : item.status }).where(eq(s.checklistItems.id, itemId));
+  await db.update(s.checklistItems).set({ selectedVendorId: vendorId, status: vendorId ? (item.status === "completed" ? "completed" : "booked") : item.status, bookedAt: !vendorId ? null : item.selectedVendorId === vendorId ? (item.bookedAt ?? new Date()) : new Date() }).where(eq(s.checklistItems.id, itemId));
   refreshEvent(item.eventId);
 }
 

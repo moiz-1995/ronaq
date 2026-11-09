@@ -5,6 +5,7 @@ import { SlidersHorizontal, X } from "lucide-react";
 import type { Attribute, Area, Category, City } from "@/db/schema";
 import { SERVICE_MODES } from "@/db/catalog";
 import { PRICING_LABELS } from "@/lib/price";
+import { BudgetRange } from "./BudgetRange";
 
 type Props = {
   cities: City[];
@@ -105,11 +106,8 @@ export function Filters({ cities, areas, categories, attributes, fixedCategory }
           )}
 
           <fieldset className="grid gap-2">
-            <legend className="label mb-1">Budget (PKR)</legend>
-            <div className="grid grid-cols-2 gap-2">
-              <input aria-label="Minimum price" name="min" inputMode="numeric" placeholder="Min" className="input" defaultValue={sp.get("min") ?? ""} />
-              <input aria-label="Maximum price" name="max" inputMode="numeric" placeholder="Max" className="input" defaultValue={sp.get("max") ?? ""} />
-            </div>
+            <legend className="label mb-1">Budget</legend>
+            <BudgetRange key={`${sp.get("min")}-${sp.get("max")}`} min={sp.get("min")} max={sp.get("max")} />
             {unitHint && <p className="hint">Prices in this category are {unitHint}.</p>}
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="quote" value="1" defaultChecked={sp.get("quote") !== "0"} className="accent-red" /> Include vendors who give custom quotes</label>
           </fieldset>

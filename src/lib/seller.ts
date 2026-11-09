@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { and, eq, sql } from "drizzle-orm";
 import { db, schema as s } from "@/db";
 import { requireUser } from "./auth";
-import { completeness } from "./domain";
+import { completeness, profileTips } from "./domain";
 
 export async function requireVendorPage(path = "/seller") {
   const user = await requireUser(path);
@@ -32,4 +32,11 @@ export async function vendorMetrics(vendorId: string) {
     avgResponseHours: avgH == null ? null : Math.round(avgH * 10) / 10,
     unread: inqs.reduce((a, i) => a + i.vendorUnread, 0),
   };
+}
+
+export async function vendorTips(vendorId: string) {
+  const vendor = (await db.query.vendors.findFirst({ where: eq(s.vendors.id, vendorId) }))!;
+  const services = await db.select().from(s.vendorServices).where(eq(s.vendorServices.vendorId, vendorId));
+  const [{ n }] = await db.select({ n: sql<number>`count(*)` }).from(s.portfolioItems).where(and(eq(s.portfolioItems.vendorId, vendorId), eq(s.portfolioItems.status, "visible")));
+  return profileTips({ ...vendor, services, portfolioCount: Number(n) });
 }

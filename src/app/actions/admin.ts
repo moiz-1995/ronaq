@@ -6,7 +6,7 @@ import { db, schema as s } from "@/db";
 import type { AttributeType, PricingModel } from "@/db/schema";
 import { requireAdmin, requireStaff } from "@/lib/auth";
 import { audit, notify, track } from "@/lib/track";
-import { foundingOnApproval } from "@/lib/domain";
+import { publishFields } from "@/lib/publish";
 import { getSetting, setSetting, type ReviewPolicy } from "@/lib/settings";
 import { refreshRating } from "@/lib/ratings";
 
@@ -25,14 +25,9 @@ export async function moderateVendor(_: unknown, form: FormData): Promise<Result
   if ((op === "reject" || op === "suspend") && !reason) return { error: "Add a reason. The vendor sees it, and it's kept in the audit log." };
   const before = { status: v.status, founding: v.founding };
   if (op === "approve") {
-    const cap = await getSetting("foundingCap");
-    const [{ n }] = await db.select({ n: sql<number>`count(*)` }).from(s.vendors).where(eq(s.vendors.founding, true));
-    const f = foundingOnApproval(Number(n), cap, v.founding);
-    await db.update(s.vendors).set({
-      status: "approved", statusReason: null, profileReviewed: true, pendingChanges: false, approvedAt: v.approvedAt ?? new Date(),
-      ...(f.number ? { founding: true, foundingNumber: f.number } : {}),
-    }).where(eq(s.vendors.id, id));
-    await notify(v.ownerId, { type: "vendor_approved", title: "Your profile is live! 🎉", body: f.number ? `You're Founding Vendor #${f.number}.` : undefined, href: "/seller" });
+    const live = await publishFields(v);
+    await db.update(s.vendors).set({ ...live, profileReviewed: true, pendingChanges: false }).where(eq(s.vendors.id, id));
+    if (v.status !== "approved") await notify(v.ownerId, { type: "vendor_approved", title: "Your profile is live! 🎉", body: live.foundingNumber ? `You're Founding Vendor #${live.foundingNumber}.` : undefined, href: "/seller" });
     await track("vendor_profile_approved", { userId: admin.id, cityId: v.cityId });
   } else if (op === "reject") {
     await db.update(s.vendors).set({ status: "rejected", statusReason: reason }).where(eq(s.vendors.id, id));

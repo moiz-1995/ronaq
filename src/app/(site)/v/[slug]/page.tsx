@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, asc, desc, eq, gte, inArray, sql } from "drizzle-orm";
-import { MapPin, Clock, CalendarDays, Briefcase, MessageCircle, Truck, Home as HomeIcon, Building2, Store, Laptop, PenLine, Info } from "lucide-react";
+import { MapPin, Clock, CalendarDays, Briefcase, MessageCircle, Truck, Home as HomeIcon, Building2, Store, Laptop, PenLine, Info, Heart, CalendarCheck, ExternalLink } from "lucide-react";
 import { db, schema as s } from "@/db";
 import { getUser } from "@/lib/auth";
-import { getAllCategories, getAreas, getCities, getShortlistIds } from "@/lib/queries";
+import { getAllCategories, getAreas, getCities, getShortlistIds, vendorDemand } from "@/lib/queries";
 import { displayPrice } from "@/lib/price";
 import { todayPKT, formatDate, timeAgo } from "@/lib/time";
 import { track } from "@/lib/track";
@@ -41,13 +41,14 @@ export default async function VendorPage({ params }: { params: Promise<{ slug: s
   const isStaff = !!user && user.role !== "user";
   if (v.status !== "approved" && !isOwner && !isStaff) notFound();
 
-  const [services, portfolio, reviewRows, cats, areas, cities, saved, blocked, policy] = await Promise.all([
+  const [services, portfolio, reviewRows, cats, areas, cities, saved, blocked, policy, demand] = await Promise.all([
     db.select().from(s.vendorServices).where(and(eq(s.vendorServices.vendorId, v.id), eq(s.vendorServices.active, true))).orderBy(asc(s.vendorServices.createdAt)),
     db.select().from(s.portfolioItems).where(and(eq(s.portfolioItems.vendorId, v.id), eq(s.portfolioItems.status, "visible"))).orderBy(asc(s.portfolioItems.sortOrder)),
     db.select({ r: s.reviews, author: s.users.name }).from(s.reviews).innerJoin(s.users, eq(s.users.id, s.reviews.authorId)).where(and(eq(s.reviews.vendorId, v.id), eq(s.reviews.status, "published"))).orderBy(desc(s.reviews.createdAt)).limit(30),
     getAllCategories(), getAreas(), getCities(), getShortlistIds(user?.id),
     db.select().from(s.availability).where(and(eq(s.availability.vendorId, v.id), gte(s.availability.date, todayPKT()))).orderBy(asc(s.availability.date)).limit(60),
     getSetting("reviewPolicy"),
+    vendorDemand(v.id, v.ownerId),
   ]);
   const attrDefs = services.length ? await db.select().from(s.attributes).where(inArray(s.attributes.categoryId, services.map((x) => x.categoryId))) : [];
   const mainCat = cats.find((c) => c.id === services[0]?.categoryId);
@@ -109,6 +110,13 @@ export default async function VendorPage({ params }: { params: Promise<{ slug: s
               </div>
             </div>
             <div className="mt-4"><VerificationBadges v={v} /></div>
+            {(demand.shortlisted > 0 || demand.booked > 0) && (
+              <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl bg-sun/40 px-3 py-2 text-sm font-bold">
+                {demand.shortlisted > 0 && <span className="inline-flex items-center gap-1.5"><Heart size={15} className="fill-red text-red" /> Shortlisted {times(demand.shortlisted)}</span>}
+                {demand.booked > 0 && <span className="inline-flex items-center gap-1.5"><CalendarCheck size={15} className="text-green" /> Booked {times(demand.booked)}</span>}
+                <span className="font-normal text-mute">in the last 30 days{demand.booked > 0 ? ", as marked by families on Ronaq" : ""}</span>
+              </div>
+            )}
             {v.description && <p className="mt-5 max-w-[65ch] whitespace-pre-line text-[17px] leading-relaxed">{v.description}</p>}
             <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
               {v.experienceYears != null && <Fact icon={Briefcase} k="Experience" val={`${v.experienceYears} years${v.businessType ? ` · ${v.businessType}` : ""}`} />}
@@ -149,7 +157,7 @@ export default async function VendorPage({ params }: { params: Promise<{ slug: s
                   <MessageCircle size={17} /> Send an inquiry
                 </Link>
               )}
-              {!isOwner && <SaveButton vendorId={v.id} saved={saved.has(v.id)} variant="full" />}
+              {!isOwner && <SaveButton vendorId={v.id} vendorName={v.name} saved={saved.has(v.id)} variant="full" />}
               {user && v.revealContact && !isOwner && <ContactReveal vendorId={v.id} phone={v.phone} whatsapp={v.whatsapp} />}
               <p className="flex gap-2 rounded-xl bg-sand p-3 text-xs text-mute">
                 <Info size={15} className="flex-none text-ink" />
@@ -199,10 +207,29 @@ export default async function VendorPage({ params }: { params: Promise<{ slug: s
             </div>
           </section>
 
-          <section className="min-w-0" aria-labelledby="port">
-            <h2 id="port" className="h-display mb-4 text-2xl">Portfolio</h2>
-            <Gallery items={portfolio} vendorName={v.name} />
-          </section>
+          {portfolio.length > 0 && (
+            <section className="min-w-0" aria-labelledby="port">
+              <h2 id="port" className="h-display mb-4 text-2xl">Portfolio</h2>
+              <Gallery items={portfolio} vendorName={v.name} />
+            </section>
+          )}
+
+          {!!v.workReferences?.length && (
+            <section className="min-w-0" aria-labelledby="refs">
+              <h2 id="refs" className="h-display text-2xl">Previous work &amp; references</h2>
+              <ul className="mt-4 grid gap-3">
+                {v.workReferences.map((r, i) => (
+                  <li key={i} className="panel p-4">
+                    <p className="font-bold">{r.title}</p>
+                    {r.client && <p className="text-sm text-mute">{r.client}</p>}
+                    {r.note && <p className="mt-1">{r.note}</p>}
+                    {r.link && <a href={r.link} target="_blank" rel="noopener noreferrer nofollow ugc" className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-blue underline">See it online <ExternalLink size={13} /></a>}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-xs text-mute">Added by the vendor.</p>
+            </section>
+          )}
 
           <section className="min-w-0" aria-labelledby="avail">
             <h2 id="avail" className="h-display text-2xl">Next two weeks</h2>
@@ -263,6 +290,8 @@ export default async function VendorPage({ params }: { params: Promise<{ slug: s
     </div>
   );
 }
+
+const times = (n: number) => `${n.toLocaleString("en-PK")} ${n === 1 ? "time" : "times"}`;
 
 function Fact({ icon: I, k, val }: { icon: typeof Clock; k: string; val: string }) {
   return (

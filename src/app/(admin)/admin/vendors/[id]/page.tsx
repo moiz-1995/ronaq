@@ -89,8 +89,8 @@ export default async function AdminVendor({ params }: { params: Promise<{ id: st
           <section className="rounded-2xl border-[3px] border-ink bg-white p-5">
             <h2 className="font-display">Decision</h2>
             <div className="mt-3 grid gap-3">
-              {(v.status === "pending" || v.status === "draft" || v.status === "rejected" || v.pendingChanges) && (
-                <OpForm action={moderateVendor} hidden={{ ...hidden, op: "approve" }} label={v.pendingChanges && v.status === "approved" ? "Approve changes" : "Approve & publish"} className="btn btn-sm btn-blue" confirm={!c.ready} />
+              {(v.status === "pending" || v.status === "draft" || v.status === "rejected" || v.pendingChanges || (v.status === "approved" && !v.profileReviewed)) && (
+                <OpForm action={moderateVendor} hidden={{ ...hidden, op: "approve" }} label={v.status !== "approved" ? "Approve & publish" : v.pendingChanges ? "Approve changes" : "Mark as reviewed"} className="btn btn-sm btn-blue" confirm={!c.ready} />
               )}
               {!c.ready && v.status !== "approved" && <p className="text-xs text-red">Profile is incomplete. Approve only if you&apos;ve checked it with the vendor.</p>}
               {(v.status === "pending" || v.status === "draft") && <OpForm action={moderateVendor} hidden={{ ...hidden, op: "reject" }} label="Send back with changes" reason="What should the vendor fix?" />}

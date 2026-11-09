@@ -1,12 +1,18 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, CalendarHeart, Heart, User } from "lucide-react";
+import { Home, Search, CalendarHeart, Heart, User, Inbox, Tag } from "lucide-react";
 
 /** §15: persistent navigation on phones — Dashboard, Marketplace, Events, Shortlist, Account. */
-export function MobileTabs({ signedIn }: { signedIn: boolean }) {
+export function MobileTabs({ signedIn, isSeller, vendorMode }: { signedIn: boolean; isSeller: boolean; vendorMode: boolean }) {
   const path = usePathname();
-  const tabs = [
+  const tabs = isSeller && (vendorMode || path.startsWith("/seller")) ? [
+    { href: "/seller", label: "Dashboard", icon: Home },
+    { href: "/seller/inquiries", label: "Queries", icon: Inbox },
+    { href: "/seller/services", label: "Services", icon: Tag },
+    { href: "/marketplace", label: "Marketplace", icon: Search },
+    { href: "/account", label: "Account", icon: User },
+  ] : [
     { href: signedIn ? "/dashboard" : "/", label: signedIn ? "Dashboard" : "Home", icon: Home },
     { href: "/marketplace", label: "Marketplace", icon: Search },
     { href: signedIn ? "/events" : "/plan", label: "Events", icon: CalendarHeart },
@@ -22,7 +28,7 @@ export function MobileTabs({ signedIn }: { signedIn: boolean }) {
     >
       <ul className="grid grid-cols-5">
         {tabs.map(({ href, label, icon: I }) => {
-          const active = href === "/" ? path === "/" : path.startsWith(href);
+          const active = href === "/" || href === "/seller" ? path === href : path.startsWith(href);
           return (
             <li key={label}>
               <Link href={href} className={`flex flex-col items-center gap-0.5 py-2 text-[11px] font-bold ${active ? "text-red" : "text-ink"}`} aria-current={active ? "page" : undefined}>

@@ -6,6 +6,7 @@ import { getCategories } from "@/lib/queries";
 import { displayPrice } from "@/lib/price";
 import { CraftArt } from "@/components/art/CraftArt";
 import { AddServiceForm } from "./AddServiceForm";
+import { RemoveServiceButton } from "./RemoveServiceButton";
 
 export const metadata = { title: "Services" };
 
@@ -26,7 +27,8 @@ export default async function SellerServices() {
           const filled = Object.values(svc.attributes ?? {}).filter((x) => x !== "" && x != null && !(Array.isArray(x) && !x.length)).length;
           return (
             <li key={svc.id}>
-              <Link href={`/seller/services/${svc.id}`} className="card flex flex-wrap items-center gap-4 bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--color-ink)]">
+              <div className="card flex flex-wrap items-center gap-3 bg-white p-4 transition hover:shadow-[5px_5px_0_var(--color-ink)]">
+              <Link href={`/seller/services/${svc.id}`} className="flex min-w-[240px] flex-1 flex-wrap items-center gap-4">
                 <span className="h-16 w-16 overflow-hidden rounded-xl border-2 border-ink"><CraftArt kind={cat?.art ?? "henna"} seed={i} className="h-full w-full" /></span>
                 <div className="min-w-0 flex-1">
                   <p className="font-display text-xs text-blue">{cat?.name.toUpperCase()}</p>
@@ -35,6 +37,8 @@ export default async function SellerServices() {
                 </div>
                 <p className="text-right"><span className="text-xs text-mute">{p.lead} </span><b className="font-display text-red">{p.amount}</b> <span className="text-xs text-mute">{p.unit}</span></p>
               </Link>
+              <RemoveServiceButton id={svc.id} title={svc.title} canRemove={services.length > 1} />
+              </div>
             </li>
           );
         })}

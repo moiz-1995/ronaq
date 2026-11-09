@@ -1,3 +1,4 @@
+import type { WorkReference } from "../lib/references";
 import { sql } from "drizzle-orm";
 import {
   sqliteTable,
@@ -150,6 +151,7 @@ export const vendors = sqliteTable(
     advanceNoticeDays: integer("advance_notice_days"),
     capacity: integer("capacity"),
     referralSource: text("referral_source"),
+    workReferences: json<WorkReference[]>("work_references").default([]),
     status: text("status", { enum: ["draft", "pending", "approved", "rejected", "suspended"] })
       .notNull()
       .default("draft"),
@@ -265,6 +267,7 @@ export const checklistItems = sqliteTable(
     budget: integer("budget"),
     selectedVendorId: text("selected_vendor_id"),
     deadline: text("deadline"),
+    bookedAt: integer("booked_at", { mode: "timestamp_ms" }),
     createdAt: createdAt(),
   },
   (t) => [index("checklist_event").on(t.eventId)],

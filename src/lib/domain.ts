@@ -26,20 +26,47 @@ export type CompletenessInput = {
 
 export const MIN_PORTFOLIO = 3;
 
-/** FR-SEL-004: what's still missing before a profile can be submitted. */
+/** FR-SEL-004: the basics a profile needs to go live. Optional items are encouraged through profileTips, never required. */
 export function completeness(v: CompletenessInput) {
   const items = [
     { key: "name", label: "Business name", done: !!v.name?.trim() },
-    { key: "description", label: "Description of at least 40 characters", done: (v.description?.trim().length ?? 0) >= 40 },
+    { key: "description", label: "Description of at least 40 characters", optional: true, done: (v.description?.trim().length ?? 0) >= 40 },
     { key: "location", label: "City", done: !!v.cityId },
-    { key: "areas", label: "Areas you serve", done: !!v.servesWholeCity || (v.serviceAreaIds?.length ?? 0) > 0 || !!v.serviceRadiusKm },
+    { key: "areas", label: "Areas you serve", optional: true, done: !!v.servesWholeCity || (v.serviceAreaIds?.length ?? 0) > 0 || !!v.serviceRadiusKm },
     { key: "modes", label: "How you deliver (home visit, venue, delivery…)", done: (v.modes?.length ?? 0) > 0 },
     { key: "contact", label: "Phone or email", done: !!(v.phone?.trim() || v.email?.trim()) },
     { key: "service", label: "At least one service with pricing", done: v.services.some((s) => s.title.trim() && (s.pricingModel === "quote" || (s.priceAmount ?? 0) > 0)) },
-    { key: "portfolio", label: `${MIN_PORTFOLIO}+ portfolio images`, done: v.portfolioCount >= MIN_PORTFOLIO },
-  ];
+    { key: "portfolio", label: `${MIN_PORTFOLIO}+ portfolio images`, optional: true, done: v.portfolioCount >= MIN_PORTFOLIO },
+  ] as { key: string; label: string; done: boolean; optional?: boolean }[];
   const done = items.filter((i) => i.done).length;
-  return { items, done, total: items.length, percent: Math.round((done / items.length) * 100), ready: done === items.length };
+  return { items, done, total: items.length, percent: Math.round((done / items.length) * 100), ready: items.every((i) => i.done || i.optional) };
+}
+
+export type TipsInput = CompletenessInput & {
+  coverImage?: string | null;
+  logoImage?: string | null;
+  workingHours?: string | null;
+  experienceYears?: number | null;
+  socials?: Record<string, string | undefined> | null;
+  workReferences?: unknown[] | null;
+};
+
+/** After publishing: the empty fields worth filling, most valuable first, and how strong the profile is overall. */
+export function profileTips(v: TipsInput) {
+  const checks = [
+    { key: "photos", done: v.portfolioCount >= MIN_PORTFOLIO, title: `Add ${MIN_PORTFOLIO} or more photos of your work`, why: "Real photos are what families look at first.", href: "/seller/portfolio" },
+    { key: "price", done: v.services.some((s) => s.pricingModel !== "quote" && (s.priceAmount ?? 0) > 0), title: "Add a price, even a “starting from” one", why: "Families filter by budget, and custom quotes sort last.", href: "/seller/services" },
+    { key: "description", done: (v.description?.trim().length ?? 0) >= 40, title: "Tell families what you're known for", why: "A couple of sentences about your work builds trust.", href: "/seller/profile" },
+    { key: "areas", done: !!v.servesWholeCity || (v.serviceAreaIds?.length ?? 0) > 0 || !!v.serviceRadiusKm, title: "Choose the areas you serve", why: "So you show up when families search their sector.", href: "/seller/profile" },
+    { key: "references", done: (v.workReferences?.length ?? 0) > 0, title: "List previous work and references", why: "Past events show you've done this before.", href: "/seller/profile#references" },
+    { key: "cover", done: !!v.coverImage, title: "Upload a cover photo", why: "It's the first thing people see on your card.", href: "/seller/profile" },
+    { key: "logo", done: !!v.logoImage, title: "Add your logo", why: "Helps families remember your brand.", href: "/seller/profile" },
+    { key: "socials", done: Object.values(v.socials ?? {}).some(Boolean), title: "Link your Instagram or website", why: "Families like to see more of your work.", href: "/seller/profile" },
+    { key: "hours", done: !!v.workingHours?.trim(), title: "Add your working hours", why: "Sets expectations before families message you.", href: "/seller/profile" },
+    { key: "experience", done: v.experienceYears != null, title: "Add your years of experience", why: "A quick reason to pick you.", href: "/seller/profile" },
+  ];
+  const done = checks.filter((c) => c.done).length;
+  return { tips: checks.filter((c) => !c.done), done, total: checks.length, percent: Math.round((done / checks.length) * 100) };
 }
 
 /** §13: review eligibility is configurable by admins. */

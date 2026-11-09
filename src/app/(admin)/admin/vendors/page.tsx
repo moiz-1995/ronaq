@@ -17,7 +17,7 @@ export default async function AdminVendors({ searchParams }: { searchParams: Pro
   const status = sp.status ?? "queue";
   const q = sp.q?.toLowerCase().trim();
   const rows = all.filter((v) =>
-    (status === "all" || (status === "queue" ? v.status === "pending" || v.pendingChanges : v.status === status)) &&
+    (status === "all" || (status === "queue" ? v.status === "pending" || v.pendingChanges || (v.status === "approved" && !v.profileReviewed) : v.status === status)) &&
     (!q || v.name.toLowerCase().includes(q) || v.slug.includes(q)) &&
     (!sp.city || v.cityId === sp.city) &&
     (!sp.category || svcs.some((x) => x.vendorId === v.id && x.categoryId === sp.category)),

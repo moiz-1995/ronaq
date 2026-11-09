@@ -1,4 +1,5 @@
 "use server";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { and, asc, eq, sql } from "drizzle-orm";
@@ -10,8 +11,13 @@ import { completeness, MATERIAL_FIELDS } from "@/lib/domain";
 import { saveImage, UploadError } from "@/lib/storage";
 import { getAttributes, getCategories } from "@/lib/queries";
 import { SOCIALS, normalizeSocial, type Socials } from "@/lib/socials";
+import { MODE_COOKIE } from "@/lib/mode";
+import { publishFields } from "@/lib/publish";
+import { PRICING_LABELS } from "@/lib/price";
+import { parseReferences } from "@/lib/references";
 
 type Result = { error?: string; message?: string; ok?: boolean } | undefined;
+const MAX_ONBOARDING_PHOTOS = 6;
 const str = (v: FormDataEntryValue | null, max = 200) => { const x = String(v ?? "").trim().slice(0, max); return x || null; };
 const int = (v: FormDataEntryValue | null) => { const n = Number(String(v ?? "").replace(/[^\d]/g, "")); return String(v ?? "").trim() === "" || isNaN(n) ? null : n; };
 const slugify = (x: string) => x.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 60) || "vendor";
@@ -32,6 +38,20 @@ async function uniqueSlug(base: string, exceptId?: string) {
   }
 }
 
+const referencesFrom = (form: FormData) => parseReferences({
+  titles: form.getAll("ref_title").map(String), clients: form.getAll("ref_client").map(String),
+  notes: form.getAll("ref_note").map(String), links: form.getAll("ref_link").map(String),
+});
+
+async function enterVendorMode() {
+  (await cookies()).set(MODE_COOKIE, "vendor", { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 365 });
+}
+
+async function tellAdmins(title: string, href: string) {
+  const staff = await db.select({ id: s.users.id }).from(s.users).where(eq(s.users.role, "admin"));
+  for (const a of staff) await notify(a.id, { type: "admin_vendor_pending", title, href });
+}
+
 const refresh = (slug?: string) => { revalidatePath("/seller", "layout"); if (slug) revalidatePath(`/v/${slug}`); };
 
 // ---------- onboarding (§9.1, FR-SEL-001/002) ----------
@@ -46,6 +66,21 @@ export async function startSelling(_: unknown, form: FormData): Promise<Result> 
   if (!cityId) return { error: "Choose your city." };
   if (!catSlugs.length) return { error: "Choose at least one service category." };
   const cats = (await getCategories()).filter((c) => catSlugs.includes(c.slug));
+  let workReferences;
+  try {
+    workReferences = referencesFrom(form);
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+  const files = form.getAll("images").filter((f): f is File => f instanceof File && f.size > 0);
+  if (files.length > MAX_ONBOARDING_PHOTOS) return { error: `Add up to ${MAX_ONBOARDING_PHOTOS} photos for now. You can add more from your dashboard.` };
+  const photos: string[] = [];
+  try {
+    for (const f of files) photos.push(await saveImage(f, "portfolio"));
+  } catch (e) {
+    if (e instanceof UploadError) return { error: e.message };
+    throw e;
+  }
   const [v] = await db.insert(s.vendors).values({
     ownerId: user.id, slug: await uniqueSlug(name), name, ownerName: str(form.get("ownerName"), 80) ?? user.name,
     description: str(form.get("description"), 2000), businessType: str(form.get("businessType"), 40),
@@ -53,13 +88,19 @@ export async function startSelling(_: unknown, form: FormData): Promise<Result> 
     serviceAreaIds: form.getAll("serviceAreaIds").map(String), serviceRadiusKm: int(form.get("serviceRadiusKm")),
     modes: form.getAll("modes").map(String), experienceYears: int(form.get("experienceYears")),
     phone: str(form.get("phone"), 20), whatsapp: str(form.get("whatsapp"), 20), email: user.email,
-    emailVerified: user.emailVerified, referralSource: str(form.get("referralSource"), 60), status: "draft",
+    emailVerified: user.emailVerified, referralSource: str(form.get("referralSource"), 60), workReferences,
+    ...(await publishFields({ founding: false, approvedAt: null })),
   }).returning();
   for (const c of cats) {
     await db.insert(s.vendorServices).values({ vendorId: v.id, categoryId: c.id, title: c.name, pricingModel: (c.priceModels?.[0] as PricingModel) ?? "quote" });
   }
   await db.update(s.users).set({ isSeller: true }).where(eq(s.users.id, user.id));
+  for (const [i, imageUrl] of photos.entries()) await db.insert(s.portfolioItems).values({ vendorId: v.id, imageUrl, sortOrder: i });
   await track("vendor_profile_created", { userId: user.id, cityId, props: { categories: cats.length } });
+  await track("vendor_profile_approved", { userId: user.id, cityId });
+  await audit({ actorId: user.id, action: "vendor.self_published", objectType: "vendor", objectId: v.id });
+  await tellAdmins(`${v.name} just went live`, `/admin/vendors/${v.id}`);
+  await enterVendorMode();
   redirect("/seller?welcome=1");
 }
 
@@ -87,6 +128,11 @@ export async function saveVendorProfile(_: unknown, form: FormData): Promise<Res
     }
   }
   next.socials = socials;
+  try {
+    next.workReferences = referencesFrom(form);
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
   try {
     const cover = form.get("cover") as File | null;
     if (cover && cover.size) next.coverImage = await saveImage(cover, "covers");
@@ -129,6 +175,7 @@ export async function saveService(_: unknown, form: FormData): Promise<Result> {
   const title = str(form.get("title"), 100);
   if (!title) return { error: "Give the service a title." };
   const model = String(form.get("pricingModel")) as PricingModel;
+  if (!(model in PRICING_LABELS)) return { error: "Choose how this service is priced." };
   const amount = int(form.get("priceAmount"));
   if (model !== "quote" && !amount) return { error: "Enter a price, or choose “Custom quote”." };
   const defs = await getAttributes(svc.categoryId);
@@ -222,18 +269,24 @@ export async function cycleAvailability(date: string) {
   refresh(vendor.slug);
 }
 
-// ---------- submit for review (FR-SEL-005) ----------
-export async function submitForReview() {
+// ---------- publish (FR-SEL-005): drafts go live; a profile the team sent back returns to them ----------
+export async function publishProfile() {
   const { user, vendor } = await requireVendor();
   const services = await db.select().from(s.vendorServices).where(eq(s.vendorServices.vendorId, vendor.id));
   const [{ n }] = await db.select({ n: sql<number>`count(*)` }).from(s.portfolioItems).where(and(eq(s.portfolioItems.vendorId, vendor.id), eq(s.portfolioItems.status, "visible")));
   const c = completeness({ ...vendor, services, portfolioCount: Number(n) });
   if (!c.ready || (vendor.status !== "draft" && vendor.status !== "rejected")) return;
-  await db.update(s.vendors).set({ status: "pending", statusReason: null, updatedAt: new Date() }).where(eq(s.vendors.id, vendor.id));
-  await audit({ actorId: user.id, action: "vendor.submitted", objectType: "vendor", objectId: vendor.id });
-  await track("vendor_profile_submitted", { userId: user.id, cityId: vendor.cityId });
-  const staff = await db.select({ id: s.users.id }).from(s.users).where(eq(s.users.role, "admin"));
-  for (const a of staff) await notify(a.id, { type: "admin_vendor_pending", title: `${vendor.name} submitted for review`, href: `/admin/vendors/${vendor.id}` });
+  if (vendor.status === "draft") {
+    await db.update(s.vendors).set({ ...(await publishFields(vendor)), updatedAt: new Date() }).where(eq(s.vendors.id, vendor.id));
+    await audit({ actorId: user.id, action: "vendor.self_published", objectType: "vendor", objectId: vendor.id });
+    await track("vendor_profile_approved", { userId: user.id, cityId: vendor.cityId });
+    await tellAdmins(`${vendor.name} just went live`, `/admin/vendors/${vendor.id}`);
+  } else {
+    await db.update(s.vendors).set({ status: "pending", statusReason: null, updatedAt: new Date() }).where(eq(s.vendors.id, vendor.id));
+    await audit({ actorId: user.id, action: "vendor.submitted", objectType: "vendor", objectId: vendor.id });
+    await track("vendor_profile_submitted", { userId: user.id, cityId: vendor.cityId });
+    await tellAdmins(`${vendor.name} submitted for review`, `/admin/vendors/${vendor.id}`);
+  }
   refresh(vendor.slug);
 }
 
@@ -249,5 +302,6 @@ export async function claimProfile(_: unknown, form: FormData): Promise<Result> 
   await db.update(s.vendors).set({ ownerId: user.id, claimCode: null, email: v.email ?? user.email }).where(eq(s.vendors.id, v.id));
   await db.update(s.users).set({ isSeller: true }).where(eq(s.users.id, user.id));
   await audit({ actorId: user.id, action: "vendor.claimed", objectType: "vendor", objectId: v.id });
+  await enterVendorMode();
   redirect("/seller?claimed=1");
 }

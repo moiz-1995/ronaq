@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
 import { cache } from "react";
 import { db, schema as s } from "@/db";
 import type { User } from "@/db/schema";
@@ -80,3 +80,14 @@ export async function hydrateVendorCards(vendorIds: string[]) {
     });
 }
 export type VendorCardData = Awaited<ReturnType<typeof hydrateVendorCards>>[number];
+
+/** Last 30 days: how many families shortlisted or marked this vendor as booked. A vendor's own account doesn't count. */
+export async function vendorDemand(vendorId: string, ownerId: string | null) {
+  const since = new Date(Date.now() - 30 * 86400000);
+  const [[short], [booked]] = await Promise.all([
+    db.select({ n: sql<number>`count(*)` }).from(s.shortlist).where(and(eq(s.shortlist.vendorId, vendorId), gte(s.shortlist.createdAt, since), sql`${s.shortlist.userId} is not ${ownerId}`)),
+    db.select({ n: sql<number>`count(distinct ${s.checklistItems.eventId})` }).from(s.checklistItems).innerJoin(s.events, eq(s.events.id, s.checklistItems.eventId))
+      .where(and(eq(s.checklistItems.selectedVendorId, vendorId), gte(s.checklistItems.bookedAt, since), inArray(s.checklistItems.status, ["booked", "completed"]), sql`${s.events.userId} is not ${ownerId}`)),
+  ]);
+  return { shortlisted: Number(short.n), booked: Number(booked.n) };
+}

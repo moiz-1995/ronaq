@@ -7,6 +7,8 @@ import { Picture, VendorLogo } from "@/components/art/CraftArt";
 import type { Vendor } from "@/db/schema";
 import { SOCIALS } from "@/lib/socials";
 import { SocialIcon } from "@/components/vendor/SocialIcon";
+import { ReferenceFields, ReferencesEditor } from "@/components/vendor/ReferencesEditor";
+import type { WorkReference } from "@/lib/references";
 
 type Props = {
   v: Vendor & { serviceAreaIds: string[]; modes: string[] };
@@ -23,6 +25,7 @@ export function ProfileForm({ v, art, cities, areas, businessTypes, modes }: Pro
   const [whole, setWhole] = useState(v.servesWholeCity);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [refs, setRefs] = useState<WorkReference[]>(v.workReferences ?? []);
   const cityAreas = areas.filter((a) => a.cityId === cityId);
   return (
     <form action={action} className="mt-6 grid gap-6">
@@ -97,6 +100,13 @@ export function ProfileForm({ v, art, cities, areas, businessTypes, modes }: Pro
             <input id={`so-${sdef.key}`} name={`social_${sdef.key}`} className="input" defaultValue={v.socials?.[sdef.key] ?? ""} placeholder={sdef.placeholder} inputMode="url" autoComplete="off" />
           </div>
         ))}
+      </section>
+
+      <section id="references" className="card scroll-mt-24 bg-white p-5 sm:p-6">
+        <h2 className="font-display text-lg">Previous work &amp; references</h2>
+        <p className="mb-4 mt-1 text-sm text-mute">Optional. Events you&apos;ve done, and who can vouch for you.</p>
+        <ReferenceFields value={refs} />
+        <ReferencesEditor value={refs} onChange={setRefs} />
       </section>
 
       <FormMessage state={state} />

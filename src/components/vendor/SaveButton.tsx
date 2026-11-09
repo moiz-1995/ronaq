@@ -3,8 +3,9 @@ import { Heart } from "lucide-react";
 import { useOptimistic, useTransition } from "react";
 import { usePathname } from "next/navigation";
 import { toggleShortlist } from "@/app/actions/market";
+import { toast } from "@/components/ui/Toaster";
 
-export function SaveButton({ vendorId, saved, variant = "icon" }: { vendorId: string; saved: boolean; variant?: "icon" | "full" }) {
+export function SaveButton({ vendorId, vendorName, saved, variant = "icon" }: { vendorId: string; vendorName: string; saved: boolean; variant?: "icon" | "full" }) {
   const path = usePathname();
   const [optimistic, set] = useOptimistic(saved);
   const [pending, start] = useTransition();
@@ -13,13 +14,14 @@ export function SaveButton({ vendorId, saved, variant = "icon" }: { vendorId: st
     e.stopPropagation();
     start(async () => {
       set(!optimistic);
-      await toggleShortlist(vendorId, path);
+      const added = await toggleShortlist(vendorId, path);
+      toast(added ? { message: `${vendorName} is shortlisted!`, href: "/shortlist", action: "View shortlist" } : { message: `${vendorName} removed from your shortlist` });
     });
   };
   if (variant === "full")
     return (
       <button type="button" onClick={onClick} disabled={pending} className={`btn ${optimistic ? "btn-red" : ""}`} aria-pressed={optimistic}>
-        <Heart size={18} className={optimistic ? "fill-sand" : ""} /> {optimistic ? "Saved" : "Save"}
+        <Heart size={18} className={optimistic ? "fill-sand" : ""} /> {optimistic ? "Shortlisted" : "Shortlist"}
       </button>
     );
   return (
@@ -28,7 +30,7 @@ export function SaveButton({ vendorId, saved, variant = "icon" }: { vendorId: st
       onClick={onClick}
       disabled={pending}
       aria-pressed={optimistic}
-      aria-label={optimistic ? "Remove from shortlist" : "Save to shortlist"}
+      aria-label={optimistic ? `Remove ${vendorName} from shortlist` : `Add ${vendorName} to shortlist`}
       className={`grid h-10 w-10 place-items-center rounded-full border-[3px] border-ink shadow-[2px_2px_0_var(--color-ink)] transition-transform active:scale-90 ${optimistic ? "bg-red text-sand" : "bg-white text-ink"}`}
     >
       <Heart size={18} className={optimistic ? "fill-sand" : ""} />

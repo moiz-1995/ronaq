@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { MODE_COOKIE } from "@/lib/mode";
 import { and, asc, desc, eq, gte } from "drizzle-orm";
 import { ArrowRight, CalendarDays, Heart, MessageCircle, Rocket, Bell, MapPin, Plus } from "lucide-react";
 import { db, schema as s } from "@/db";
@@ -18,6 +21,7 @@ export const metadata = { title: "Dashboard" };
 
 export default async function Dashboard() {
   const user = await requireUser("/dashboard");
+  if ((await cookies()).get(MODE_COOKIE)?.value === "vendor" && (await getMyVendor(user.id))) redirect("/seller");
   await runDueReminders(user);
   const events = await db.select().from(s.events).where(eq(s.events.userId, user.id)).orderBy(asc(s.events.date));
   const primary = events.find((e) => e.isPrimary) ?? null;

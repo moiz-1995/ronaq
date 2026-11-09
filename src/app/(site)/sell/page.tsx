@@ -60,8 +60,8 @@ export default async function SellPage() {
         <div className="card grid gap-6 bg-sand p-6 sm:p-10 md:grid-cols-3">
           {[
             ["1", "Create your profile", "Tell us what you offer, where and how. About 5 minutes."],
-            ["2", "Add prices & photos", "At least 3 photos of your own work. Prices or “custom quote”."],
-            ["3", "Get reviewed & go live", "Our team checks your profile, usually within 2 working days."],
+            ["2", "Publish straight away", "Your profile goes live as soon as you finish. No photos needed to start."],
+            ["3", "Stand out", "Add photos, prices and past work whenever you like. We'll show you what to fill in."],
           ].map(([n, t, d]) => (
             <div key={n}><span className="grid h-12 w-12 place-items-center rounded-full border-[3px] border-ink bg-red font-display text-sand">{n}</span><h3 className="mt-3 font-display text-lg">{t}</h3><p className="text-sm text-mute">{d}</p></div>
           ))}

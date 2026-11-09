@@ -2,7 +2,7 @@ import type { PricingModel } from "@/db/schema";
 
 export const PRICING_LABELS: Record<PricingModel, string> = {
   fixed: "Fixed price",
-  starting: "Starting price",
+  starting: "Starting from",
   per_person: "Per person",
   per_item: "Per item",
   package: "Package",
@@ -20,6 +20,22 @@ export function pkrShort(n: number): string {
   return pkr(n);
 }
 
+/** Slider stops for the budget filter. The first means no minimum, the last means no maximum. */
+export const BUDGET_STOPS = [0, 500, 1000, 1500, 2000, 3000, 4000, 5000, 7500, 10000, 15000, 20000, 30000, 40000, 50000, 75000, 100000, 150000, 200000, 300000, 500000, 750000, 1000000, 1500000, 2000000, 3000000, 5000000] as const;
+
+export function nearestStop(n: number): number {
+  let best = 0;
+  BUDGET_STOPS.forEach((s, i) => { if (Math.abs(s - n) < Math.abs(BUDGET_STOPS[best] - n)) best = i; });
+  return best;
+}
+
+export function budgetLabel(min: number | null | undefined, max: number | null | undefined): string {
+  if (min && max) return `${pkrShort(min)} – ${pkrShort(max)}`;
+  if (min) return `${pkrShort(min)} and up`;
+  if (max) return `Up to ${pkrShort(max)}`;
+  return "Any budget";
+}
+
 export type PriceDisplay = { lead: string; amount: string; unit: string; numeric: boolean };
 
 /** FR-MKT-004: units are explicit, and a custom quote is never shown as a number. */
@@ -29,7 +45,7 @@ export function displayPrice(model: PricingModel, amount: number | null | undefi
     case "per_person": return { lead: "from", amount: pkr(amount), unit: "per person", numeric: true };
     case "per_item": return { lead: "from", amount: pkr(amount), unit: "per item", numeric: true };
     case "package": return { lead: "from", amount: pkr(amount), unit: "package", numeric: true };
-    case "starting": return { lead: "starts at", amount: pkr(amount), unit: "", numeric: true };
+    case "starting": return { lead: "Starting from", amount: pkr(amount), unit: "", numeric: true };
     case "fixed": return { lead: "", amount: pkr(amount), unit: "fixed", numeric: true };
   }
 }

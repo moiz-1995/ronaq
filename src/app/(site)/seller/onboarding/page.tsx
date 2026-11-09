@@ -16,7 +16,7 @@ export default async function SellerOnboardingPage() {
     <div className="wrap max-w-3xl py-10">
       <p className="kicker">Start selling</p>
       <h1 className="h-display mt-2 text-[clamp(2rem,6vw,3.4rem)]">Set up your dukaan</h1>
-      <p className="mt-2 text-mute">Four short steps. Your profile stays private as a draft until you submit it for review. You can save and come back any time.</p>
+      <p className="mt-2 text-mute">Five short steps and your profile is live. Only the basics are needed, and you can add photos and more details any time.</p>
       <SellerWizard
         user={{ name: user.name, phone: user.phone }}
         cities={cities.filter((c) => c.active).map((c) => ({ id: c.id, name: c.name }))}

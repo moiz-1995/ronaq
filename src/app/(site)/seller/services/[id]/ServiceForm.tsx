@@ -1,6 +1,7 @@
 "use client";
-import { useActionState, useState, useTransition } from "react";
-import { deleteService, saveService } from "@/app/actions/seller";
+import { useActionState, useState } from "react";
+import { saveService } from "@/app/actions/seller";
+import { RemoveServiceButton } from "../RemoveServiceButton";
 import { FormMessage, Submit } from "@/components/ui/form";
 import { PRICING_LABELS } from "@/lib/price";
 
@@ -13,8 +14,7 @@ const OCCASIONS = ["Wedding", "Mehndi", "Barat", "Walima", "Dholki", "Engagement
 export function ServiceForm({ svc, priceModels, attrs, canDelete }: { svc: Svc; priceModels: string[]; attrs: Attr[]; canDelete: boolean }) {
   const [state, action] = useActionState(saveService, undefined);
   const [model, setModel] = useState(svc.pricingModel);
-  const [pending, start] = useTransition();
-  const models = Array.from(new Set([...priceModels, "quote"]));
+  const models = Array.from(new Set(["starting", ...priceModels, "quote"]));
   return (
     <form action={action} className="mt-6 grid gap-6">
       <input type="hidden" name="id" value={svc.id} />
@@ -64,7 +64,7 @@ export function ServiceForm({ svc, priceModels, attrs, canDelete }: { svc: Svc; 
       <FormMessage state={state} />
       <div className="flex flex-wrap justify-between gap-3">
         <Submit>Save service</Submit>
-        {canDelete && <button type="button" className="btn btn-sm" disabled={pending} onClick={() => start(() => deleteService(svc.id))}>Delete service</button>}
+        <RemoveServiceButton id={svc.id} title={svc.title} canRemove={canDelete} />
       </div>
     </form>
   );

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { X } from "lucide-react";
 import type { Area, Attribute, Category, City } from "@/db/schema";
 import { SERVICE_MODES } from "@/db/catalog";
+import { budgetLabel } from "@/lib/price";
 
 type SP = Record<string, string | string[] | undefined>;
 
@@ -12,7 +13,7 @@ export function ActiveFilters({ searchParams, basePath, cities, areas, categorie
   if (one("category")) chips.push({ label: categories.find((c) => c.id === one("category"))?.name ?? "Category", key: "category" });
   if (one("city")) chips.push({ label: cities.find((c) => c.id === one("city"))?.name ?? "City", key: "city" });
   if (one("area")) chips.push({ label: areas.find((a) => a.id === one("area"))?.name ?? "Area", key: "area" });
-  if (one("min") || one("max")) chips.push({ label: `PKR ${one("min") ?? "0"}–${one("max") ?? "any"}`, key: "min|max" });
+  if (one("min") || one("max")) chips.push({ label: budgetLabel(Number(one("min")) || null, Number(one("max")) || null), key: "min|max" });
   if (one("quote") === "0") chips.push({ label: "Priced vendors only", key: "quote" });
   if (one("mode")) chips.push({ label: SERVICE_MODES.find((m) => m.value === one("mode"))?.label ?? "Mode", key: "mode" });
   if (one("date")) chips.push({ label: `Free on ${one("date")}`, key: "date" });

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { countdown, todayPKT, monthGrid } from "@/lib/time";
 import { displayPrice, comparePrice } from "@/lib/price";
-import { eventHeading, completeness, reviewEligibility, foundingOnApproval, servesArea } from "@/lib/domain";
+import { eventHeading, completeness, profileTips, reviewEligibility, foundingOnApproval, servesArea } from "@/lib/domain";
 
 describe("PKT countdown", () => {
   // 2026-11-05T20:30Z is already 6 Nov 01:30 in Pakistan
@@ -143,4 +143,63 @@ describe("guest labels", () => {
   it("shows ranges for range values", () => expect(guestLabel(200)).toBe("100–200 guests"));
   it("shows exact custom counts", () => expect(guestLabel(137)).toBe("137 guests"));
   it("handles empty", () => expect(guestLabel(null)).toBeNull());
+});
+
+describe("publishing without photos", () => {
+  const basics = { name: "X", cityId: "c", modes: ["on_site"], email: "a@b.pk", services: [{ title: "Bridal", pricingModel: "quote", priceAmount: null }], portfolioCount: 0 };
+  it("is ready with no photos, description or areas", () => expect(completeness(basics).ready).toBe(true));
+  it("still needs a service", () => expect(completeness({ ...basics, services: [] }).ready).toBe(false));
+  it("suggests what's missing, photos first", () => {
+    const t = profileTips(basics);
+    expect(t.tips[0].key).toBe("photos");
+    expect(t.tips.map((x) => x.key)).toContain("references");
+    expect(t.done).toBe(0);
+  });
+  it("stops suggesting what's filled", () => {
+    const t = profileTips({ ...basics, portfolioCount: 3, workReferences: [{}], socials: { instagram: "https://instagram.com/x" } });
+    const keys = t.tips.map((x) => x.key);
+    expect(keys).not.toContain("photos");
+    expect(keys).not.toContain("references");
+    expect(keys).not.toContain("socials");
+  });
+});
+
+import { parseReferences, normalizeReferenceLink } from "@/lib/references";
+describe("work references", () => {
+  it("adds https to bare links", () => expect(normalizeReferenceLink("instagram.com/p/abc")).toBe("https://instagram.com/p/abc"));
+  it("upgrades http", () => expect(normalizeReferenceLink("http://noor.pk/x")).toBe("https://noor.pk/x"));
+  it("rejects scripts", () => {
+    expect(() => normalizeReferenceLink("javascript:alert(1)")).toThrow();
+    expect(() => normalizeReferenceLink("data:text/html,hi")).toThrow();
+    expect(() => normalizeReferenceLink("ftp://noor.pk")).toThrow();
+  });
+  it("drops rows with no title and keeps columns aligned", () => {
+    expect(parseReferences({ titles: ["", "Barat"], clients: ["A", "Khan family"], notes: ["", ""], links: ["", ""] })).toEqual([{ title: "Barat", client: "Khan family" }]);
+  });
+});
+
+import { budgetLabel, nearestStop, BUDGET_STOPS } from "@/lib/price";
+describe("budget slider", () => {
+  it("labels ranges", () => {
+    expect(budgetLabel(null, null)).toBe("Any budget");
+    expect(budgetLabel(null, 50000)).toBe("Up to PKR 50k");
+    expect(budgetLabel(5000, null)).toBe("PKR 5,000 and up");
+    expect(budgetLabel(5000, 1500000)).toBe("PKR 5,000 – PKR 1.5M");
+  });
+  it("snaps typed values to the nearest stop", () => expect(BUDGET_STOPS[nearestStop(10400)]).toBe(10000));
+});
+
+import { customerPageName } from "@/lib/mode";
+describe("vendor and customer views", () => {
+  it("knows customer pages", () => {
+    expect(customerPageName("/marketplace")).toBe("Marketplace");
+    expect(customerPageName("/c/henna")).toBe("Marketplace");
+    expect(customerPageName("/events/abc")).toBe("Events");
+  });
+  it("leaves shared and vendor pages alone", () => {
+    expect(customerPageName("/seller/services")).toBeNull();
+    expect(customerPageName("/v/hina")).toBeNull();
+    expect(customerPageName("/account")).toBeNull();
+    expect(customerPageName("/contact")).toBeNull();
+  });
 });

@@ -3,6 +3,9 @@ import { useActionState, useEffect, useState } from "react";
 import { startSelling } from "@/app/actions/seller";
 import { FormMessage, Submit } from "@/components/ui/form";
 import { CraftArt } from "@/components/art/CraftArt";
+import { ImagePlus } from "lucide-react";
+import { ReferenceFields, ReferencesEditor } from "@/components/vendor/ReferencesEditor";
+import type { WorkReference } from "@/lib/references";
 
 type Props = {
   user: { name: string; phone: string | null };
@@ -14,7 +17,9 @@ type Props = {
   heard: string[];
 };
 
-const STEPS = ["What you offer", "Your business", "Where you work", "Contact"];
+const STEPS = ["What you offer", "Your business", "Where you work", "Previous work", "Contact"];
+const LAST_STEP = STEPS.length - 1;
+const MAX_PHOTOS = 6;
 const DRAFT_KEY = "ronaq-seller-draft";
 
 /** Seller questionnaire (§9.1). Steps are client-side; nothing is lost if you go back. Draft kept in this browser. */
@@ -24,8 +29,10 @@ export function SellerWizard({ user, cities, areas, cats, businessTypes, modes, 
   const [d, setD] = useState({
     categories: [] as string[], name: "", ownerName: user.name, description: "", businessType: "", experienceYears: "",
     cityId: cities[0]?.id ?? "", areaId: "", servesWholeCity: false, serviceAreaIds: [] as string[], serviceRadiusKm: "",
-    modes: [] as string[], phone: user.phone ?? "", whatsapp: "", referralSource: "",
+    modes: [] as string[], phone: user.phone ?? "", whatsapp: "", referralSource: "", references: [] as WorkReference[],
   });
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [photoNote, setPhotoNote] = useState("");
   useEffect(() => {
     try { const raw = localStorage.getItem(DRAFT_KEY); if (raw) setD((x) => ({ ...x, ...JSON.parse(raw) })); } catch {}
   }, []);
@@ -33,11 +40,11 @@ export function SellerWizard({ user, cities, areas, cats, businessTypes, modes, 
   const set = <K extends keyof typeof d>(k: K, v: (typeof d)[K]) => setD((x) => ({ ...x, [k]: v }));
   const toggle = (k: "categories" | "serviceAreaIds" | "modes", v: string) => set(k, d[k].includes(v) ? d[k].filter((x) => x !== v) : [...d[k], v]);
   const cityAreas = areas.filter((a) => a.cityId === d.cityId);
-  const canNext = [d.categories.length > 0, d.name.trim().length > 1, !!d.cityId && d.modes.length > 0, true][step];
+  const canNext = [d.categories.length > 0, d.name.trim().length > 1, !!d.cityId && d.modes.length > 0, true, true][step];
 
   return (
     <form action={action} onSubmit={() => { try { localStorage.removeItem(DRAFT_KEY); } catch {} }} className="mt-8 grid gap-6">
-      <ol className="grid grid-cols-4 gap-1.5" aria-label="Progress">
+      <ol className="grid grid-cols-5 gap-1.5" aria-label="Progress">
         {STEPS.map((t, i) => (
           <li key={t} className={`rounded-lg border-2 border-ink px-2 py-1.5 text-center text-xs font-bold ${i === step ? "bg-red text-sand" : i < step ? "bg-sand" : "bg-white"}`} aria-current={i === step ? "step" : undefined}>
             <span className="hidden sm:inline">{i + 1}. </span>{t}
@@ -51,6 +58,7 @@ export function SellerWizard({ user, cities, areas, cats, businessTypes, modes, 
       {d.serviceAreaIds.map((a) => <input key={a} type="hidden" name="serviceAreaIds" value={a} />)}
       {(["name", "ownerName", "description", "businessType", "experienceYears", "cityId", "areaId", "serviceRadiusKm", "phone", "whatsapp", "referralSource"] as const).map((k) => <input key={k} type="hidden" name={k} value={d[k]} />)}
       {d.servesWholeCity && <input type="hidden" name="servesWholeCity" value="on" />}
+      <ReferenceFields value={d.references} />
 
       <div className="card card-shadow bg-white p-5 sm:p-7">
         {step === 0 && (
@@ -80,7 +88,7 @@ export function SellerWizard({ user, cities, areas, cats, businessTypes, modes, 
               <select id="w-type" className="input" value={d.businessType} onChange={(e) => set("businessType", e.target.value)}><option value="">Choose…</option>{businessTypes.map((b) => <option key={b}>{b}</option>)}</select>
             </div>
             <div className="field"><label className="label" htmlFor="w-exp">Years of experience</label><input id="w-exp" className="input" inputMode="numeric" value={d.experienceYears} onChange={(e) => set("experienceYears", e.target.value.replace(/\D/g, ""))} /></div>
-            <div className="field sm:col-span-2"><label className="label" htmlFor="w-desc">Describe your work</label><textarea id="w-desc" className="input" value={d.description} onChange={(e) => set("description", e.target.value)} maxLength={2000} placeholder="What makes your work special? What do families love about you?" /><p className="hint">{d.description.trim().length}/40 characters minimum before you can submit. You can finish this later.</p></div>
+            <div className="field sm:col-span-2"><label className="label" htmlFor="w-desc">Describe your work</label><textarea id="w-desc" className="input" value={d.description} onChange={(e) => set("description", e.target.value)} maxLength={2000} placeholder="What makes your work special? What do families love about you?" /><p className="hint">Optional for now. A couple of sentences helps families choose you.</p></div>
           </div>
         )}
         {step === 2 && (
@@ -111,6 +119,29 @@ export function SellerWizard({ user, cities, areas, cats, businessTypes, modes, 
           </div>
         )}
         {step === 3 && (
+          <div className="grid gap-3">
+            <h2 className="font-display text-xl">Previous work &amp; references</h2>
+            <p className="-mt-1 text-sm text-mute">Optional. Share events you&apos;ve done so families can trust your work. Just starting out? Press Next.</p>
+            <ReferencesEditor value={d.references} onChange={(references) => set("references", references)} />
+          </div>
+        )}
+        {/* stays mounted so chosen photos survive moving between steps */}
+        <div className={step === 3 ? "mt-5 grid gap-2" : "hidden"}>
+          <p className="label">Photos of your work (optional)</p>
+          <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-[3px] border-dashed border-ink/40 p-5 font-bold hover:bg-sand">
+            <ImagePlus size={18} /> {previews.length ? `${previews.length} photo${previews.length > 1 ? "s" : ""} chosen. Change` : "Choose photos"}
+            <input type="file" name="images" multiple accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => {
+              const chosen = [...(e.target.files ?? [])];
+              if (chosen.length > MAX_PHOTOS) { e.target.value = ""; setPreviews([]); setPhotoNote(`Choose up to ${MAX_PHOTOS} for now. You can add more from your dashboard.`); return; }
+              setPhotoNote("");
+              setPreviews(chosen.map((f) => URL.createObjectURL(f)));
+            }} />
+          </label>
+          {photoNote && <p className="text-sm font-bold text-red">{photoNote}</p>}
+          {previews.length > 0 && <div className="flex flex-wrap gap-2">{previews.map((p) => <img key={p} src={p} alt="Chosen work" className="h-16 w-16 rounded-xl border-2 border-ink object-cover" />)}</div>}
+          <p className="hint">No photos yet? No problem. Your card will show an illustration of your craft.</p>
+        </div>
+        {step === 4 && (
           <div className="grid gap-4 sm:grid-cols-2">
             <h2 className="font-display text-xl sm:col-span-2">Contact details</h2>
             <p className="-mt-2 text-sm text-mute sm:col-span-2">For Ronaq to reach you. Families only see your number if you turn that on later in your profile.</p>
@@ -126,12 +157,12 @@ export function SellerWizard({ user, cities, areas, cats, businessTypes, modes, 
       <FormMessage state={state} />
       <div className="flex flex-wrap items-center gap-3">
         {step > 0 && <button type="button" className="btn" onClick={() => setStep(step - 1)}>Back</button>}
-        {step < 3 ? (
+        {step < LAST_STEP ? (
           <button type="button" className="btn btn-red" disabled={!canNext} onClick={() => setStep(step + 1)}>Next</button>
         ) : (
-          <Submit pendingText="Creating your profile…">Create my profile</Submit>
+          <Submit pendingText="Publishing your profile…">Publish my profile</Submit>
         )}
-        {!canNext && step < 3 && <p className="text-sm text-mute">{["Choose at least one category.", "Add your business name.", "Pick your city and at least one way you work."][step]}</p>}
+        {!canNext && step < LAST_STEP && <p className="text-sm text-mute">{["Choose at least one category.", "Add your business name.", "Pick your city and at least one way you work."][step]}</p>}
       </div>
     </form>
   );

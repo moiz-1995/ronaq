@@ -1,14 +1,17 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { usePathname } from "next/navigation";
 import { ArrowLeftRight } from "lucide-react";
 import { signOutAction } from "@/app/actions/auth";
+import { switchMode } from "@/app/actions/mode";
 
-export function AccountMenu({ name, isSeller, isStaff }: { name: string; isSeller: boolean; isStaff: boolean }) {
+export function AccountMenu({ name, isSeller, isStaff, vendorMode }: { name: string; isSeller: boolean; isStaff: boolean; vendorMode: boolean }) {
   const [open, setOpen] = useState(false);
   const path = usePathname();
-  const inVendorMode = path.startsWith("/seller");
+  const inVendorMode = isSeller && (vendorMode || path.startsWith("/seller"));
+  const [switching, start] = useTransition();
+  const switchBtn = "mb-1 flex w-full items-center gap-2 rounded-lg bg-blue px-3 py-2 text-sm font-bold text-sand hover:bg-ink";
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const close = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
@@ -30,15 +33,17 @@ export function AccountMenu({ name, isSeller, isStaff }: { name: string; isSelle
       {open && (
         <div role="menu" className="card card-shadow absolute right-0 top-12 z-50 w-56 overflow-hidden p-1.5 text-ink">
           <p className="px-3 py-2 text-xs text-mute">Signed in as <b className="text-ink">{name}</b>{inVendorMode ? " · vendor mode" : ""}</p>
-          <Link role="menuitem" href={inVendorMode ? "/dashboard" : isSeller ? "/seller" : "/seller/onboarding"} onClick={() => setOpen(false)}
-            className="mb-1 flex items-center gap-2 rounded-lg bg-blue px-3 py-2 text-sm font-bold text-sand hover:bg-ink">
-            <ArrowLeftRight size={15} /> {inVendorMode ? "Switch to planner" : "Switch to vendor"}
-          </Link>
+          {isSeller ? (
+            <button role="menuitem" type="button" disabled={switching} className={switchBtn} onClick={() => start(async () => { await switchMode(inVendorMode ? "customer" : "vendor", inVendorMode ? "/dashboard" : "/seller"); setOpen(false); })}>
+              <ArrowLeftRight size={15} /> {inVendorMode ? "Switch to customer" : "Switch to vendor"}
+            </button>
+          ) : (
+            <Link role="menuitem" href="/seller/onboarding" onClick={() => setOpen(false)} className={switchBtn}><ArrowLeftRight size={15} /> Switch to vendor</Link>
+          )}
           {!isSeller && !inVendorMode && <p className="-mt-0.5 mb-1 px-3 text-[11px] text-mute">Sell your services on Ronaq with the same account.</p>}
           {[
-            ["/dashboard", "Dashboard"],
+            ...(inVendorMode ? [["/seller", "Vendor dashboard"], ["/seller/inquiries", "Queries"]] : [["/dashboard", "Dashboard"], ["/inbox", "Messages"]]),
             ["/account", "Account & settings"],
-            ["/inbox", "Messages"],
             ...(isStaff ? [["/admin", "Admin console"]] : []),
           ].map(([href, label]) => (
             <Link key={href} role="menuitem" href={href} onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-bold hover:bg-sand">

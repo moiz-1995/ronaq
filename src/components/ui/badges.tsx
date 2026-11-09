@@ -82,5 +82,5 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 export function StatusChip({ status, label }: { status: string; label?: string }) {
-  return <span className={`chip ${STATUS_STYLE[status] ?? "bg-white"}`}>{(label ?? status.replace(/_/g, " ")).toUpperCase()}</span>;
+  return <span className={`chip ${STATUS_STYLE[status] ?? "bg-white"}`}>{(label ?? (status === "approved" ? "live" : status.replace(/_/g, " "))).toUpperCase()}</span>;
 }
