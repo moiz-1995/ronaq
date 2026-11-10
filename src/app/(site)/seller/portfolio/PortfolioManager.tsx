@@ -22,8 +22,8 @@ export function PortfolioManager({ items, services }: { items: Item[]; services:
       <form ref={ref} action={action} className="card grid gap-4 bg-white p-5 sm:p-6">
         <label className={`grid cursor-pointer place-items-center gap-2 rounded-2xl border-[3px] border-dashed border-ink/40 p-8 text-center transition hover:border-red hover:bg-red-soft/40`}>
           <ImagePlus size={32} className="text-red" />
-          <span className="font-display">Photos chunein</span>
-          <span className="text-sm text-mute">Ek waqt mein 10 tak · JPG, PNG ya WebP · har photo 5 MB tak.</span>
+          <span className="font-display">Choose photos</span>
+          <span className="text-sm text-mute">Up to 10 at a time · JPG, PNG or WebP · 5 MB each.</span>
           <input type="file" name="images" multiple accept="image/jpeg,image/png,image/webp" className="sr-only"
             onChange={(e) => setPreviews(Array.from(e.target.files ?? []).slice(0, 10).map((f) => URL.createObjectURL(f)))} />
         </label>
@@ -31,10 +31,10 @@ export function PortfolioManager({ items, services }: { items: Item[]; services:
           <>
             <div className="flex gap-2 overflow-x-auto">{previews.map((p) => <img key={p} src={p} alt="" className="h-20 w-20 flex-none rounded-xl border-2 border-ink object-cover" />)}</div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="field"><label className="label text-xs" htmlFor="pf-cap">Photo ka caption</label><input id="pf-cap" name="caption" className="input" placeholder="Maslan bridal mehndi, December" /></div>
+              <div className="field"><label className="label text-xs" htmlFor="pf-cap">Caption</label><input id="pf-cap" name="caption" className="input" placeholder="e.g. Bridal mehndi, December" /></div>
               <div className="field"><label className="label text-xs" htmlFor="pf-svc">Service</label><Select id="pf-svc" name="serviceId" className="input"><option value="">—</option>{services.map((x) => <option key={x.id} value={x.id}>{x.title}</option>)}</Select></div>
-              <div className="field"><label className="label text-xs" htmlFor="pf-tags">Tags (comma laga kar)</label><input id="pf-tags" name="tags" className="input" placeholder="bridal, arabic, feet" /></div>
-              <div className="field"><label className="label text-xs" htmlFor="pf-price">Rate ki misaal (optional)</label><input id="pf-price" name="priceExample" className="input" placeholder="Maslan PKR 15,000 poore haath" /></div>
+              <div className="field"><label className="label text-xs" htmlFor="pf-tags">Tags (comma separated)</label><input id="pf-tags" name="tags" className="input" placeholder="bridal, arabic, feet" /></div>
+              <div className="field"><label className="label text-xs" htmlFor="pf-price">Price example (optional)</label><input id="pf-price" name="priceExample" className="input" placeholder="e.g. PKR 15,000 full hands" /></div>
             </div>
             <div><Submit pendingText="Uploading…">Upload {previews.length} photo{previews.length > 1 ? "s" : ""}</Submit></div>
           </>

@@ -69,9 +69,9 @@ export async function startSelling(_: unknown, form: FormData): Promise<Result> 
   const name = str(form.get("name"), 80);
   const cityId = str(form.get("cityId"));
   const catSlugs = form.getAll("categories").map(String);
-  if (!name) return { error: "Dukaan ka naam likhein." };
-  if (!cityId) return { error: "Apna sheher chunein." };
-  if (!catSlugs.length) return { error: "Kam az kam ek category chunein." };
+  if (!name) return { error: "Add your business name." };
+  if (!cityId) return { error: "Choose your city." };
+  if (!catSlugs.length) return { error: "Choose at least one category." };
   const cats = (await getCategories()).filter((c) => catSlugs.includes(c.slug));
   let workReferences;
   try {
@@ -115,7 +115,7 @@ export async function startSelling(_: unknown, form: FormData): Promise<Result> 
 export async function saveVendorProfile(_: unknown, form: FormData): Promise<Result> {
   const { user, vendor } = await requireVendor();
   const name = str(form.get("name"), 80);
-  if (!name) return { error: "Dukaan ka naam khali nahi ho sakta." };
+  if (!name) return { error: "Your business name can't be empty." };
   const next: Partial<typeof s.vendors.$inferInsert> = {
     name, ownerName: str(form.get("ownerName"), 80), description: str(form.get("description"), 2000),
     businessType: str(form.get("businessType"), 40), cityId: str(form.get("cityId")), areaId: str(form.get("areaId")),
@@ -163,11 +163,11 @@ export async function saveVendorProfile(_: unknown, form: FormData): Promise<Res
     const [{ n }] = await db.select({ n: sql<number>`count(*)` }).from(s.portfolioItems).where(and(eq(s.portfolioItems.vendorId, vendor.id), eq(s.portfolioItems.status, "visible")));
     const updated = { ...vendor, ...next } as typeof vendor;
     const c = completeness({ ...updated, services, portfolioCount: Number(n) });
-    if (!c.ready) return { error: `Save ho gaya. Publish se pehle yeh bharein: ${c.items.filter((i) => !i.done && !i.optional).map((i) => i.label).join(", ")}.` };
+    if (!c.ready) return { error: `Saved. Before publishing, add: ${c.items.filter((i) => !i.done && !i.optional).map((i) => i.label).join(", ")}.` };
     await goLive(user, updated);
     redirect("/seller?welcome=1");
   }
-  return { ok: true, message: material ? "Save ho gaya. Team jaldi se tabdeeli dekh legi, tab tak aap ki dukaan live rahegi." : vendor.status === "approved" ? "Save ho gaya. Aap ki live dukaan update ho gayi." : "Save ho gaya." };
+  return { ok: true, message: material ? "Saved. Our team will take a quick look, tab tak aap ki dukaan live rahegi." : vendor.status === "approved" ? "Saved. Your live dukaan is updated." : "Saved." };
 }
 
 function pick(v: Record<string, unknown>) {
@@ -189,11 +189,11 @@ export async function saveService(_: unknown, form: FormData): Promise<Result> {
   const svc = await db.query.vendorServices.findFirst({ where: and(eq(s.vendorServices.id, String(form.get("id"))), eq(s.vendorServices.vendorId, vendor.id)) });
   if (!svc) return { error: "Service not found." };
   const title = str(form.get("title"), 100);
-  if (!title) return { error: "Service ka naam likhein." };
+  if (!title) return { error: "Give the service a title." };
   const model = String(form.get("pricingModel")) as PricingModel;
   if (!(model in PRICING_LABELS)) return { error: "Choose how this service is priced." };
   const amount = int(form.get("priceAmount"));
-  if (model !== "quote" && !amount) return { error: "Rate likhein, ya “Custom quote” chunein." };
+  if (model !== "quote" && !amount) return { error: "Add a price, or choose “Custom quote”." };
   const defs = await getAttributes(svc.categoryId);
   const attrs: Record<string, string | string[] | boolean | number> = {};
   for (const a of defs) {
@@ -209,7 +209,7 @@ export async function saveService(_: unknown, form: FormData): Promise<Result> {
     minOrder: str(form.get("minOrder"), 100), occasions: form.getAll("occasions").map(String), attributes: attrs, active: form.get("active") === "on",
   }).where(eq(s.vendorServices.id, svc.id));
   refresh(vendor.slug);
-  return { ok: true, message: "Service save ho gayi." };
+  return { ok: true, message: "Service saved." };
 }
 
 export async function deleteService(serviceId: string) {

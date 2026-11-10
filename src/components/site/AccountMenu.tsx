@@ -42,7 +42,7 @@ export function AccountMenu({ name, isSeller, isStaff, vendorMode }: { name: str
           )}
           {!isSeller && !inVendorMode && <p className="-mt-0.5 mb-1 px-3 text-[11px] text-mute">Isi account se apni dukaan kholein.</p>}
           {[
-            ...(inVendorMode ? [["/seller", "Meri Dukaan"], ["/seller/inquiries", "Queries"]] : [["/dashboard", "Dashboard"], ["/inbox", "Messages"]]),
+            ...(inVendorMode ? [["/seller", "My Dukaan"], ["/seller/inquiries", "Queries"]] : [["/dashboard", "Dashboard"], ["/inbox", "Messages"]]),
             ["/account", "Account & settings"],
             ...(isStaff ? [["/admin", "Admin console"]] : []),
           ].map(([href, label]) => (

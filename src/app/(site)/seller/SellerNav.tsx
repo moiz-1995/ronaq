@@ -3,12 +3,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const LINKS = [
-  ["/seller", "Meri Dukaan"],
+  ["/seller", "Overview"],
   ["/seller/inquiries", "Queries"],
   ["/seller/profile", "Profile"],
   ["/seller/services", "Services"],
   ["/seller/portfolio", "Photos"],
-  ["/seller/availability", "Kab free hain"],
+  ["/seller/availability", "Availability"],
 ];
 
 export function SellerNav() {

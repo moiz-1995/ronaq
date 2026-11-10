@@ -7,7 +7,7 @@ export function TestQueryButton({ className = "btn btn-sm btn-blue" }: { classNa
   const [pending, start] = useTransition();
   return (
     <button type="button" className={className} disabled={pending} onClick={() => start(() => sendTestQuery())}>
-      <FlaskConical size={15} /> {pending ? "Bhej rahe hain…" : "Test query bhejein"}
+      <FlaskConical size={15} /> {pending ? "Sending…" : "Send a test query"}
     </button>
   );
 }

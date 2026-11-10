@@ -15,8 +15,8 @@ export default async function SellerOnboardingPage() {
   return (
     <div className="wrap max-w-3xl py-10">
       <p className="kicker">Start selling</p>
-      <h1 className="h-display mt-2 text-[clamp(2rem,6vw,3.4rem)]">Apni dukaan banayein</h1>
-      <p className="mt-2 text-mute">Paanch chhote steps aur aap ki dukaan live. Sirf zaroori cheezein chahiye, photos aur baqi tafseel baad mein bhi add kar sakte hain.</p>
+      <h1 className="h-display mt-2 text-[clamp(2rem,6vw,3.4rem)]">Set up your dukaan</h1>
+      <p className="mt-2 text-mute">Five quick steps aur aap ki dukaan live. Photos and other details baad mein bhi add kar sakte hain.</p>
       <SellerWizard
         user={{ name: user.name, phone: user.phone }}
         cities={cities.filter((c) => c.active).map((c) => ({ id: c.id, name: c.name }))}

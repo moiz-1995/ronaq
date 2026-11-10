@@ -8,7 +8,7 @@ import { CraftArt } from "@/components/art/CraftArt";
 import { AddServiceForm } from "./AddServiceForm";
 import { RemoveServiceButton } from "./RemoveServiceButton";
 
-export const metadata = { title: "Services aur rates" };
+export const metadata = { title: "Services" };
 
 export default async function SellerServices() {
   const { vendor } = await requireVendorPage("/seller/services");
@@ -18,13 +18,12 @@ export default async function SellerServices() {
   ]);
   return (
     <div className="wrap max-w-4xl py-8">
-      <h1 className="h-display text-3xl">Services aur rates</h1>
-      <p className="mt-1 text-mute">Har service ka apna rate aur tafseel hoti hai. Yehi tafseel khareedar filter mein istemal karte hain.</p>
+      <h1 className="h-display text-3xl">Services &amp; prices</h1>
+      <p className="mt-1 text-mute">Har service ki apni price aur details hoti hain. Customers inhi se filter karke aap ko dhoondte hain.</p>
       <ul data-stagger suppressHydrationWarning className="mt-6 grid gap-4">
         {services.map((svc, i) => {
           const cat = cats.find((c) => c.id === svc.categoryId);
           const p = displayPrice(svc.pricingModel, svc.priceAmount);
-          const filled = Object.values(svc.attributes ?? {}).filter((x) => x !== "" && x != null && !(Array.isArray(x) && !x.length)).length;
           return (
             <li key={svc.id}>
               <div className="card flex flex-wrap items-center gap-3 bg-white p-4 transition hover:shadow-[5px_5px_0_var(--color-ink)]">
@@ -33,7 +32,7 @@ export default async function SellerServices() {
                 <div className="min-w-0 flex-1">
                   <p className="font-display text-xs text-blue">{cat?.name.toUpperCase()}</p>
                   <p className="text-lg font-bold">{svc.title}</p>
-                  <p className="text-sm text-mute">{filled} tafseel bhari hain{svc.active ? "" : " · chhupi hui"}</p>
+                  {!svc.active && <p className="text-sm font-bold text-red">Hidden from your profile</p>}
                 </div>
                 <p className="text-right"><span className="text-xs text-mute">{p.lead} </span><b className="font-display text-red">{p.amount}</b> <span className="text-xs text-mute">{p.unit}</span></p>
               </Link>

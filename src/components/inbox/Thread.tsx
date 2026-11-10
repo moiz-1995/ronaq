@@ -35,11 +35,11 @@ export async function Thread({ inq, role, title, subtitle }: { inq: Inquiry; rol
       </header>
       {inq.isTest && (
         <div className="border-b-[3px] border-ink bg-sun px-4 py-3 text-sm sm:px-5">
-          <p className="font-bold">Yeh test query hai. Sirf aap ko nazar aa rahi hai.</p>
+          <p className="font-bold">This is a test query. Sirf aap ko nazar aa rahi hai.</p>
           {role === "vendor" ? (
-            <p>Neeche jawab likh kar bhejein, phir <Link className="font-bold underline" href={`/inbox/${inq.id}`}>khareedar view mein dekhein</Link> ke jawab pohanch gaya.</p>
+            <p>Reply below, phir <Link className="font-bold underline" href={`/inbox/${inq.id}`}>customer view mein dekhein</Link> ke reply pohanch gaya.</p>
           ) : (
-            <p>Aap khareedar ki nazar se dekh rahe hain. <Link className="font-bold underline" href={`/seller/inquiries/${inq.id}`}>Wapas dukaandaar view mein jayein</Link>.</p>
+            <p>You&apos;re seeing it as the customer. <Link className="font-bold underline" href={`/seller/inquiries/${inq.id}`}>Back to vendor view</Link>.</p>
           )}
         </div>
       )}

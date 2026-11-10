@@ -9,15 +9,15 @@ export function RemoveServiceButton({ id, title, canRemove }: { id: string; titl
   const [busy, start] = useTransition();
   return (
     <>
-      <button type="button" className="btn btn-sm" onClick={() => setOpen(true)}><Trash2 size={15} /> Hatayein</button>
+      <button type="button" className="btn btn-sm" onClick={() => setOpen(true)}><Trash2 size={15} /> Delete</button>
       {canRemove ? (
-        <ConfirmDialog open={open} title={`${title} hatana hai?`} confirmLabel="Haan, hata dein" cancelLabel="Rehne dein" busy={busy} onClose={() => setOpen(false)}
+        <ConfirmDialog open={open} title={`Delete ${title}?`} confirmLabel="Yes, delete" cancelLabel="Keep it" busy={busy} onClose={() => setOpen(false)}
           onConfirm={() => start(async () => { await deleteService(id); setOpen(false); })}>
-          Yeh aap ki profile aur marketplace se hat jayegi. Aap ki photos mehfooz rahengi. Sirf kuch din ka break hai? To service khol kar &ldquo;Profile par dikhayein&rdquo; ka tick hata dein.
+          Yeh aap ki profile aur marketplace se hat jayegi. Your photos stay safe. Sirf break chahiye? Service kholein aur &ldquo;Show this service on my profile&rdquo; untick kar dein.
         </ConfirmDialog>
       ) : (
-        <ConfirmDialog open={open} title="Yeh aap ki akeli service hai" cancelLabel="Theek hai" onClose={() => setOpen(false)}>
-          Khareedar aap ko services se hi dhoondte hain, is liye kam az kam ek zaroori hai. Pehle nayi service add karein, phir yeh hatayein.
+        <ConfirmDialog open={open} title="This is your only service" cancelLabel="Okay" onClose={() => setOpen(false)}>
+          Customers aap ko services se hi dhoondte hain, so you need at least one. Pehle nayi service add karein, phir yeh delete karein.
         </ConfirmDialog>
       )}
     </>

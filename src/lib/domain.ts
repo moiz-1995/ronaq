@@ -29,13 +29,13 @@ export const MIN_PORTFOLIO = 3;
 /** FR-SEL-004: the basics a profile needs to go live. Optional items are encouraged through profileTips, never required. */
 export function completeness(v: CompletenessInput) {
   const items = [
-    { key: "name", label: "Dukaan ka naam", done: !!v.name?.trim() },
+    { key: "name", label: "Business name", done: !!v.name?.trim() },
     { key: "description", label: "Description of at least 40 characters", optional: true, done: (v.description?.trim().length ?? 0) >= 40 },
-    { key: "location", label: "Sheher", done: !!v.cityId },
+    { key: "location", label: "City", done: !!v.cityId },
     { key: "areas", label: "Areas you serve", optional: true, done: !!v.servesWholeCity || (v.serviceAreaIds?.length ?? 0) > 0 || !!v.serviceRadiusKm },
-    { key: "modes", label: "Service kaise dete hain", done: (v.modes?.length ?? 0) > 0 },
-    { key: "contact", label: "Phone ya email", done: !!(v.phone?.trim() || v.email?.trim()) },
-    { key: "service", label: "Kam az kam ek service", done: v.services.some((s) => s.title.trim()) },
+    { key: "modes", label: "How you deliver your service", done: (v.modes?.length ?? 0) > 0 },
+    { key: "contact", label: "Phone or email", done: !!(v.phone?.trim() || v.email?.trim()) },
+    { key: "service", label: "At least one service", done: v.services.some((s) => s.title.trim()) },
     { key: "portfolio", label: `${MIN_PORTFOLIO}+ portfolio images`, optional: true, done: v.portfolioCount >= MIN_PORTFOLIO },
   ] as { key: string; label: string; done: boolean; optional?: boolean }[];
   const done = items.filter((i) => i.done).length;
@@ -54,16 +54,16 @@ export type TipsInput = CompletenessInput & {
 /** After publishing: the empty fields worth filling, most valuable first, and how strong the profile is overall. */
 export function profileTips(v: TipsInput) {
   const checks = [
-    { key: "photos", done: v.portfolioCount >= MIN_PORTFOLIO, title: `Apne kaam ki ${MIN_PORTFOLIO} ya zyada photos lagayein`, why: "Khareedar sab se pehle photos dekhte hain.", href: "/seller/portfolio" },
-    { key: "price", done: v.services.some((s) => s.pricingModel !== "quote" && (s.priceAmount ?? 0) > 0), title: "Rate likhein, chahe “Starting from” ho", why: "Khareedar budget se filter karte hain.", href: "/seller/services" },
-    { key: "description", done: (v.description?.trim().length ?? 0) >= 40, title: "Apne kaam ke baare mein likhein", why: "Do teen lines se bharosa banta hai.", href: "/seller/profile" },
-    { key: "areas", done: !!v.servesWholeCity || (v.serviceAreaIds?.length ?? 0) > 0 || !!v.serviceRadiusKm, title: "Apne ilaqe chunein", why: "Taake khareedar apne sector mein aap ko dhoond sakein.", href: "/seller/profile" },
-    { key: "references", done: (v.workReferences?.length ?? 0) > 0, title: "Pichla kaam aur references likhein", why: "Pichle events se tajurba nazar aata hai.", href: "/seller/profile#references" },
-    { key: "cover", done: !!v.coverImage, title: "Cover photo lagayein", why: "Aap ke card par sab se pehle yehi nazar aati hai.", href: "/seller/profile" },
-    { key: "logo", done: !!v.logoImage, title: "Apna logo lagayein", why: "Log aap ka naam yaad rakhte hain.", href: "/seller/profile" },
-    { key: "socials", done: Object.values(v.socials ?? {}).some(Boolean), title: "Instagram ya website jorein", why: "Khareedar aap ka aur kaam dekhna chahte hain.", href: "/seller/profile" },
-    { key: "hours", done: !!v.workingHours?.trim(), title: "Kaam ke auqaat likhein", why: "Khareedar ko pata chalta hai kab rabta karein.", href: "/seller/profile" },
-    { key: "experience", done: v.experienceYears != null, title: "Apna tajurba likhein", why: "Aap ko chunne ki ek aur wajah.", href: "/seller/profile" },
+    { key: "photos", done: v.portfolioCount >= MIN_PORTFOLIO, title: `Add ${MIN_PORTFOLIO}+ photos of your work`, why: "Customers sab se pehle photos dekhte hain.", href: "/seller/portfolio" },
+    { key: "price", done: v.services.some((s) => s.pricingModel !== "quote" && (s.priceAmount ?? 0) > 0), title: "Add a price, even a “Starting from” one", why: "Customers budget se filter karte hain.", href: "/seller/services" },
+    { key: "description", done: (v.description?.trim().length ?? 0) >= 40, title: "Describe your work", why: "Do teen lines se customers ka bharosa banta hai.", href: "/seller/profile" },
+    { key: "areas", done: !!v.servesWholeCity || (v.serviceAreaIds?.length ?? 0) > 0 || !!v.serviceRadiusKm, title: "Choose the areas you serve", why: "Taake customers apne sector mein aap ko dhoond sakein.", href: "/seller/profile" },
+    { key: "references", done: (v.workReferences?.length ?? 0) > 0, title: "Add previous work & references", why: "Pichle events se tajurba nazar aata hai.", href: "/seller/profile#references" },
+    { key: "cover", done: !!v.coverImage, title: "Upload a cover photo", why: "Aap ke card par sab se pehle yehi nazar aati hai.", href: "/seller/profile" },
+    { key: "logo", done: !!v.logoImage, title: "Add your logo", why: "Customers aap ka brand yaad rakhte hain.", href: "/seller/profile" },
+    { key: "socials", done: Object.values(v.socials ?? {}).some(Boolean), title: "Link your Instagram or website", why: "Customers aap ka aur kaam dekhna chahte hain.", href: "/seller/profile" },
+    { key: "hours", done: !!v.workingHours?.trim(), title: "Add your working hours", why: "Customers ko pata chalta hai kab message karein.", href: "/seller/profile" },
+    { key: "experience", done: v.experienceYears != null, title: "Add your years of experience", why: "Aap ko chunne ki ek aur wajah.", href: "/seller/profile" },
   ];
   const done = checks.filter((c) => c.done).length;
   return { tips: checks.filter((c) => !c.done), done, total: checks.length, percent: Math.round((done / checks.length) * 100) };

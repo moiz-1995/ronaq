@@ -13,7 +13,7 @@ export function ResetForm({ token }: { token: string }) {
         <input className="input" id="password" name="password" type="password" autoComplete="new-password" minLength={8} required />
       </div>
       <FormMessage state={state} />
-      <Submit className="btn btn-red w-full" pendingText="Save ho raha hai…">Password save karein</Submit>
+      <Submit className="btn btn-red w-full" pendingText="Saving…">Save new password</Submit>
     </form>
   );
 }

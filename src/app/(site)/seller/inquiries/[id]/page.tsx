@@ -19,9 +19,9 @@ export default async function SellerThread({ params }: { params: Promise<{ id: s
   const consumer = await db.query.users.findFirst({ where: eq(s.users.id, t.inq.consumerId) });
   return (
     <div className="wrap max-w-3xl py-8">
-      <Link href="/seller/inquiries" className="text-sm font-bold text-blue underline">← Saari queries</Link>
+      <Link href="/seller/inquiries" className="text-sm font-bold text-blue underline">← All queries</Link>
       <div className="mt-4">
-        <Thread inq={t.inq} role="vendor" title={t.inq.isTest ? "Test khareedar" : consumer?.name ?? "Khareedar"} subtitle="Khareedar ka number private rehta hai, jab tak woh khud chat mein na dein." />
+        <Thread inq={t.inq} role="vendor" title={t.inq.isTest ? "Test khareedar" : consumer?.name ?? "Khareedar"} subtitle="Customer ka number private rehta hai, unless they share it in the chat." />
       </div>
     </div>
   );
