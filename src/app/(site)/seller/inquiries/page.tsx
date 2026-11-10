@@ -17,7 +17,7 @@ export default async function SellerInquiries({ searchParams }: { searchParams: 
   const last = shown.length ? await db.select().from(s.messages).where(inArray(s.messages.inquiryId, shown.map(({ i }) => i.id))).orderBy(desc(s.messages.createdAt)) : [];
   return (
     <div className="wrap max-w-4xl py-8">
-      <div className="flex flex-wrap items-end justify-between gap-3"><div><h1 className="h-display text-3xl">Queries</h1><p className="mt-1 text-mute">Customers aap ko yahan message karte hain.</p></div><TestQueryButton /></div>
+      <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="kicker">Dukaandaar queries</p><h1 className="h-display mt-1 text-3xl">Queries</h1><p className="mt-1 text-mute">Queries customers sent to your dukaan.</p></div><TestQueryButton /></div>
       <nav className="mt-4 flex flex-wrap gap-2" aria-label="Filter">
         {[["all", "All"], ["unread", "Unread"], ["sent", "New"], ["responded", "Replied"], ["closed", "Done"]].map(([k, l]) => (
           <Link key={k} href={`/seller/inquiries?f=${k}`} className={`check !text-xs ${f === k ? "!bg-ink !text-sand" : ""}`}>{l} · {rows.filter(({ i }) => k === "all" || (k === "unread" ? i.vendorUnread > 0 : k === "sent" ? i.status === "sent" || i.status === "delivered" : i.status === k)).length}</Link>

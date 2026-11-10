@@ -28,6 +28,11 @@ export function SiteFooter() {
           <Link href="/legal/disclaimer">How Ronaq works</Link>
         </div>
       </div>
+      <div aria-hidden className="overflow-hidden whitespace-nowrap py-2">
+        <div className="animate-marquee inline-block font-shade text-[clamp(4rem,13vw,10rem)] leading-none text-sand/15 [animation-duration:60s]">
+          {Array.from({ length: 6 }).map((_, i) => <span key={i} className="mr-10">APKI RONAQ ✦</span>)}
+        </div>
+      </div>
       <div className="wrap border-t border-sand/15 pt-6 text-xs text-sand/60">
         Ronaq helps you discover and contact vendors. Prices, availability and services are agreed directly between you and the vendor.
       </div>

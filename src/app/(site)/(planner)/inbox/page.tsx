@@ -19,8 +19,9 @@ export default async function InboxPage() {
   const cats = await getAllCategories();
   return (
     <div className="wrap max-w-3xl py-10">
-      <p className="kicker">Messages</p>
+      <p className="kicker">Khareedar messages</p>
       <h1 className="h-display mt-2 text-4xl">Your inquiries</h1>
+      <p className="mt-1 text-mute">Messages you sent to vendors as a customer.</p>
       {!rows.length ? (
         <div className="card mt-8 grid place-items-center gap-3 p-10 text-center">
           <GiftBox className="h-40 w-40" />

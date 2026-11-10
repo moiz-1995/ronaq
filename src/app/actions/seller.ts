@@ -9,14 +9,17 @@ import { requireUser } from "@/lib/auth";
 import { audit, notify, track } from "@/lib/track";
 import { completeness, MATERIAL_FIELDS } from "@/lib/domain";
 import { saveImage, UploadError } from "@/lib/storage";
-import { getAttributes, getCategories } from "@/lib/queries";
+import { getAttributes, getCategories, getCities } from "@/lib/queries";
 import { SOCIALS, normalizeSocial, type Socials } from "@/lib/socials";
-import { MODE_COOKIE } from "@/lib/mode";
+import { MODE_COOKIE, modeCookieOptions } from "@/lib/mode";
 import { publishFields } from "@/lib/publish";
 import { PRICING_LABELS } from "@/lib/price";
 import { parseReferences } from "@/lib/references";
 
-type Result = { error?: string; message?: string; ok?: boolean } | undefined;
+type Result = { error?: string; message?: string; ok?: boolean; goTo?: string } | undefined;
+// Publishing hands the page a destination instead of redirecting from the server: on the production build the
+// browser occasionally ignored a server-side redirect here and left a new vendor on the setup form.
+const WELCOME = "/seller?welcome=1";
 const MAX_ONBOARDING_PHOTOS = 6;
 const str = (v: FormDataEntryValue | null, max = 200) => { const x = String(v ?? "").trim().slice(0, max); return x || null; };
 const int = (v: FormDataEntryValue | null) => { const n = Number(String(v ?? "").replace(/[^\d]/g, "")); return String(v ?? "").trim() === "" || isNaN(n) ? null : n; };
@@ -43,8 +46,14 @@ const referencesFrom = (form: FormData) => parseReferences({
   notes: form.getAll("ref_note").map(String), links: form.getAll("ref_link").map(String),
 });
 
+async function otherCitiesFrom(form: FormData, mainCityId: string | null) {
+  const all = await getCities();
+  const extraCityIds = [...new Set(form.getAll("extraCityIds").map(String))].filter((id) => id !== mainCityId && all.some((c) => c.id === id));
+  return { extraCityIds, otherCities: str(form.get("otherCities"), 120) };
+}
+
 async function enterVendorMode() {
-  (await cookies()).set(MODE_COOKIE, "vendor", { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 365 });
+  (await cookies()).set(MODE_COOKIE, "vendor", modeCookieOptions());
 }
 
 async function tellAdmins(title: string, href: string) {
@@ -95,7 +104,7 @@ export async function startSelling(_: unknown, form: FormData): Promise<Result> 
     serviceAreaIds: form.getAll("serviceAreaIds").map(String), serviceRadiusKm: int(form.get("serviceRadiusKm")),
     modes: form.getAll("modes").map(String), experienceYears: int(form.get("experienceYears")),
     phone: str(form.get("phone"), 20), whatsapp: str(form.get("whatsapp"), 20), email: user.email,
-    emailVerified: user.emailVerified, referralSource: str(form.get("referralSource"), 60), workReferences,
+    emailVerified: user.emailVerified, referralSource: str(form.get("referralSource"), 60), workReferences, ...(await otherCitiesFrom(form, cityId)),
     ...(await publishFields({ founding: false, approvedAt: null })),
   }).returning();
   for (const c of cats) {
@@ -107,8 +116,9 @@ export async function startSelling(_: unknown, form: FormData): Promise<Result> 
   await track("vendor_profile_approved", { userId: user.id, cityId });
   await audit({ actorId: user.id, action: "vendor.self_published", objectType: "vendor", objectId: v.id });
   await tellAdmins(`${v.name} just went live`, `/admin/vendors/${v.id}`);
-  await enterVendorMode();
-  redirect("/seller?welcome=1");
+  // no mode cookie here: changing a cookie re-renders the setup page, which then races this redirect.
+  // The dukaan dashboard switches the account to dukaandaar mode as soon as it opens (ModeSync).
+  return { ok: true, goTo: WELCOME };
 }
 
 // ---------- profile (FR-SEL-010) ----------
@@ -135,6 +145,7 @@ export async function saveVendorProfile(_: unknown, form: FormData): Promise<Res
     }
   }
   next.socials = socials;
+  Object.assign(next, await otherCitiesFrom(form, next.cityId ?? null));
   try {
     next.workReferences = referencesFrom(form);
   } catch (e) {
@@ -165,7 +176,7 @@ export async function saveVendorProfile(_: unknown, form: FormData): Promise<Res
     const c = completeness({ ...updated, services, portfolioCount: Number(n) });
     if (!c.ready) return { error: `Saved. Before publishing, add: ${c.items.filter((i) => !i.done && !i.optional).map((i) => i.label).join(", ")}.` };
     await goLive(user, updated);
-    redirect("/seller?welcome=1");
+    return { ok: true, goTo: WELCOME };
   }
   return { ok: true, message: material ? "Saved. Our team will take a quick look, tab tak aap ki dukaan live rahegi." : vendor.status === "approved" ? "Saved. Your live dukaan is updated." : "Saved." };
 }
@@ -295,7 +306,7 @@ export async function publishProfile() {
   if (vendor.status === "draft") {
     await goLive(user, vendor);
     refresh(vendor.slug);
-    redirect("/seller?welcome=1");
+    return WELCOME;
   } else {
     await db.update(s.vendors).set({ status: "pending", statusReason: null, updatedAt: new Date() }).where(eq(s.vendors.id, vendor.id));
     await audit({ actorId: user.id, action: "vendor.submitted", objectType: "vendor", objectId: vendor.id });

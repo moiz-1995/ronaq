@@ -1,7 +1,9 @@
 "use client";
 import dynamic from "next/dynamic";
 import { useCan3D } from "./useCan3D";
+import { useEffect, useState } from "react";
 import { CraftArt } from "@/components/art/CraftArt";
+import { Petals } from "@/components/motion/Petals";
 
 const BuntingInner = dynamic(() => import("./Bunting3D"), { ssr: false });
 const GiftInner = dynamic(() => import("./Gift3D"), { ssr: false });
@@ -59,4 +61,14 @@ const StageInner = dynamic(() => import("./HeroStage3D"), { ssr: false });
 export function OccasionModel({ active = 1, className = "h-56 w-56" }: { active?: number; className?: string }) {
   const ok = useCan3D();
   return <div className={className}>{ok ? <StageInner active={active} /> : <CraftArt kind={["henna", "dhol", "cake"][active]} seed={4} className="h-full w-full rounded-full" />}</div>;
+}
+
+const MelaInner = dynamic(() => import("./MelaSky3D"), { ssr: false });
+
+/** The 3D mela night sky behind dark hero bands: fairy lights, bokeh, lanterns and petals. Falls back to CSS petals. */
+export function MelaSky() {
+  const ok = useCan3D();
+  const [lite, setLite] = useState(false);
+  useEffect(() => { setLite(matchMedia("(max-width: 700px)").matches); }, []);
+  return <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">{ok ? <MelaInner lite={lite} /> : <Petals />}</div>;
 }

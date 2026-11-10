@@ -106,10 +106,11 @@ export function haversineKm(a: { lat: number; lng: number }, b: { lat: number; l
 
 /** FR-MKT-005: does the vendor serve this area? */
 export function servesArea(
-  v: { cityId: string | null; servesWholeCity: boolean; serviceAreaIds: string[] | null; serviceRadiusKm: number | null; areaLat?: number | null; areaLng?: number | null },
+  v: { cityId: string | null; extraCityIds?: string[] | null; servesWholeCity: boolean; serviceAreaIds: string[] | null; serviceRadiusKm: number | null; areaLat?: number | null; areaLng?: number | null },
   target: { id: string; cityId: string; lat: number | null; lng: number | null },
 ): boolean {
-  if (v.cityId !== target.cityId) return false;
+  // areas are only kept for the main city; another city the vendor serves counts as a whole
+  if (v.cityId !== target.cityId) return !!v.extraCityIds?.includes(target.cityId);
   if (v.servesWholeCity) return true;
   if (v.serviceAreaIds?.includes(target.id)) return true;
   if (v.serviceRadiusKm && v.areaLat != null && v.areaLng != null && target.lat != null && target.lng != null) {

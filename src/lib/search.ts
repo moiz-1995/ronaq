@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, or, sql } from "drizzle-orm";
 import { db, schema as s } from "@/db";
 import type { Attribute, PricingModel } from "@/db/schema";
 import { comparePrice } from "./price";
@@ -25,10 +25,13 @@ export type SearchParams = {
 
 export const PAGE_SIZE = 12;
 
+/** Vendors based in this city, or who listed it as another city they serve. */
+export const inCity = (cityId: string) => or(eq(s.vendors.cityId, cityId), sql`exists (select 1 from json_each(${s.vendors.extraCityIds}) where json_each.value = ${cityId})`)!;
+
 /** Server-side search; the client only ever receives one page (PRD §16.1). */
 export async function searchVendors(p: SearchParams, attrDefs: Attribute[] = []) {
   const conds = [eq(s.vendors.status, "approved"), eq(s.vendorServices.active, true)];
-  if (p.city) conds.push(eq(s.vendors.cityId, p.city));
+  if (p.city) conds.push(inCity(p.city));
   if (p.category) conds.push(eq(s.vendorServices.categoryId, p.category));
   const q = p.q?.trim();
   const rows = await db

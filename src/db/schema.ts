@@ -151,6 +151,8 @@ export const vendors = sqliteTable(
     advanceNoticeDays: integer("advance_notice_days"),
     capacity: integer("capacity"),
     referralSource: text("referral_source"),
+    extraCityIds: json<string[]>("extra_city_ids").default([]),
+    otherCities: text("other_cities"),
     workReferences: json<WorkReference[]>("work_references").default([]),
     status: text("status", { enum: ["draft", "pending", "approved", "rejected", "suspended"] })
       .notNull()

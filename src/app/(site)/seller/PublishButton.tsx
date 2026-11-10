@@ -6,7 +6,7 @@ import { publishProfile } from "@/app/actions/seller";
 export function PublishButton({ ready, resubmit }: { ready: boolean; resubmit: boolean }) {
   const [pending, start] = useTransition();
   return (
-    <button className="btn btn-sm btn-red" disabled={!ready || pending} onClick={() => start(() => publishProfile())} title={ready ? "" : "Add the missing basics first"}>
+    <button className="btn btn-sm btn-red" disabled={!ready || pending} onClick={() => start(async () => { const to = await publishProfile(); if (to) window.location.assign(to); })} title={ready ? "" : "Add the missing basics first"}>
       {pending ? "One moment…" : resubmit ? "Send for review" : "Publish my dukaan"}
     </button>
   );

@@ -1,4 +1,5 @@
 "use server";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
@@ -6,6 +7,7 @@ import { db, schema as s } from "@/db";
 import { checkPassword, createSession, destroySession, hashPassword, safeNext, getUser } from "@/lib/auth";
 import { track } from "@/lib/track";
 import { rateLimit, TOO_MANY } from "@/lib/ratelimit";
+import { MODE_COOKIE, modeCookieOptions } from "@/lib/mode";
 import { notify } from "@/lib/track";
 import { appUrl, emailEnabled, sendEmail } from "@/lib/email";
 import { clearResetTokens, createResetToken, findResetToken } from "@/lib/passwordReset";
@@ -49,11 +51,18 @@ export async function signInAction(_: FormState, form: FormData): Promise<FormSt
   if (!user || !(await checkPassword(password, user.passwordHash))) return { error: "That email and password don't match. Check them and try again.", fields: { email } };
   if (user.status === "suspended") return { error: "This account is suspended. Contact support@ronaq.pk if you think this is a mistake.", fields: { email } };
   await createSession(user.id);
-  redirect(safeNext(String(form.get("next") ?? ""), user.role !== "user" ? "/admin" : "/dashboard"));
+  // a dukaandaar lands on their dukaan; someone who signed up to sell but hasn't set up yet goes to the setup steps
+  const next = String(form.get("next") ?? "");
+  const vendor = user.role === "user" ? await db.query.vendors.findFirst({ where: eq(s.vendors.ownerId, user.id) }) : null;
+  const jar = await cookies();
+  if (vendor && !next) jar.set(MODE_COOKIE, "vendor", modeCookieOptions());
+  else jar.delete(MODE_COOKIE);
+  redirect(safeNext(next, user.role !== "user" ? "/admin" : vendor ? "/seller" : user.isSeller ? "/seller/onboarding" : "/dashboard"));
 }
 
 export async function signOutAction() {
   await destroySession();
+  (await cookies()).delete(MODE_COOKIE);
   redirect("/");
 }
 

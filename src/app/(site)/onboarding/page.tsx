@@ -1,5 +1,8 @@
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { requireUser, safeNext } from "@/lib/auth";
-import { getCategories, getCities } from "@/lib/queries";
+import { MODE_COOKIE } from "@/lib/mode";
+import { getCategories, getCities, getMyVendor } from "@/lib/queries";
 import { HEARD_FROM } from "@/db/catalog";
 import { OnboardingForm } from "./OnboardingForm";
 
@@ -8,6 +11,10 @@ export const metadata = { title: "Welcome" };
 export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const { next } = await searchParams;
   const user = await requireUser("/onboarding");
+  // these questions are for khareedar; a dukaandaar goes to their dukaan (or its setup) instead
+  const vendor = await getMyVendor(user.id);
+  if (vendor && (await cookies()).get(MODE_COOKIE)?.value === "vendor") redirect("/seller");
+  if (!vendor && user.isSeller) redirect("/seller/onboarding");
   const [cities, cats] = await Promise.all([getCities(), getCategories()]);
   return (
     <div className="wrap max-w-2xl py-10">

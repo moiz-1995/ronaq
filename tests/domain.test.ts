@@ -224,3 +224,23 @@ describe("publishing a new vendor's default service", () => {
     expect(c.ready).toBe(true);
   });
 });
+
+import { notificationAudience } from "@/lib/mode";
+describe("dukaandaar and khareedar notifications", () => {
+  it("sends dukaan updates to the dukaandaar side", () => {
+    expect(notificationAudience({ type: "inquiry_new", href: "/seller/inquiries/1" })).toBe("vendor");
+    expect(notificationAudience({ type: "review_new", href: "/v/hina#rev" })).toBe("vendor");
+    expect(notificationAudience({ type: "vendor_approved", href: "/seller" })).toBe("vendor");
+  });
+  it("sends replies and reminders to the khareedar side", () => {
+    expect(notificationAudience({ type: "inquiry_reply", href: "/inbox/1" })).toBe("customer");
+    expect(notificationAudience({ type: "reminder_due", href: "/calendar" })).toBe("customer");
+  });
+  it("keeps staff alerts apart", () => expect(notificationAudience({ type: "admin_vendor_pending", href: "/admin/vendors/1" })).toBe("admin"));
+});
+
+describe("vendors serving more than one city", () => {
+  const target = { id: "a1", cityId: "lhr", lat: null, lng: null };
+  it("matches a city listed as also served", () => expect(servesArea({ cityId: "isb", extraCityIds: ["lhr"], servesWholeCity: false, serviceAreaIds: [], serviceRadiusKm: null }, target)).toBe(true));
+  it("doesn't match a city that isn't listed", () => expect(servesArea({ cityId: "isb", extraCityIds: ["khi"], servesWholeCity: true, serviceAreaIds: [], serviceRadiusKm: null }, target)).toBe(false));
+});

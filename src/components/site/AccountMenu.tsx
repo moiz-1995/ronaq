@@ -6,7 +6,7 @@ import { ArrowLeftRight } from "lucide-react";
 import { signOutAction } from "@/app/actions/auth";
 import { switchMode } from "@/app/actions/mode";
 
-export function AccountMenu({ name, isSeller, isStaff, vendorMode }: { name: string; isSeller: boolean; isStaff: boolean; vendorMode: boolean }) {
+export function AccountMenu({ name, isSeller, isStaff, vendorMode, otherUnread = 0 }: { name: string; isSeller: boolean; isStaff: boolean; vendorMode: boolean; otherUnread?: number }) {
   const [open, setOpen] = useState(false);
   const path = usePathname();
   const inVendorMode = isSeller && (vendorMode || path.startsWith("/seller"));
@@ -26,16 +26,18 @@ export function AccountMenu({ name, isSeller, isStaff, vendorMode }: { name: str
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="grid h-9 w-9 place-items-center rounded-full border-2 border-sand bg-red font-display text-xs text-sand"
+        aria-label={otherUnread > 0 ? `Account menu, ${otherUnread} new in your other mode` : "Account menu"}
+        className="relative grid h-9 w-9 place-items-center rounded-full border-2 border-sand bg-red font-display text-xs text-sand"
       >
         {initials || "?"}
+        {otherUnread > 0 && <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-ink bg-sun" aria-hidden />}
       </button>
       {open && (
         <div role="menu" className="card card-shadow absolute right-0 top-12 z-50 w-56 overflow-hidden p-1.5 text-ink">
           <p className="px-3 py-2 text-xs text-mute">Signed in as <b className="text-ink">{name}</b>{inVendorMode ? " · dukaandaar" : ""}</p>
           {isSeller ? (
-            <button role="menuitem" type="button" disabled={switching} className={switchBtn} onClick={() => start(async () => { await switchMode(inVendorMode ? "customer" : "vendor", inVendorMode ? "/dashboard" : "/seller"); setOpen(false); })}>
-              <ArrowLeftRight size={15} /> {inVendorMode ? "Switch to khareedar" : "Switch to dukaandaar"}
+            <button role="menuitem" type="button" disabled={switching} className={switchBtn} onClick={() => start(async () => { await switchMode(inVendorMode ? "customer" : "vendor", inVendorMode ? "/dashboard" : "/seller", true); setOpen(false); })}>
+              <ArrowLeftRight size={15} /> {inVendorMode ? "Switch to khareedar" : "Switch to dukaandaar"}{otherUnread > 0 && <span className="ml-auto rounded-full bg-sun px-1.5 text-[11px] text-ink">{otherUnread} new</span>}
             </button>
           ) : (
             <Link role="menuitem" href="/seller/onboarding" onClick={() => setOpen(false)} className={switchBtn}><ArrowLeftRight size={15} /> Switch to dukaandaar</Link>

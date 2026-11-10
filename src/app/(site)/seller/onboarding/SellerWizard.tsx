@@ -7,10 +7,12 @@ import { CraftArt } from "@/components/art/CraftArt";
 import { ImagePlus } from "lucide-react";
 import { ReferenceFields, ReferencesEditor } from "@/components/vendor/ReferencesEditor";
 import type { WorkReference } from "@/lib/references";
+import { OtherCitiesFields, OtherCitiesPicker } from "@/components/vendor/OtherCitiesPicker";
 
 type Props = {
   user: { name: string; phone: string | null };
   cities: { id: string; name: string }[];
+  allCities: { id: string; name: string }[];
   areas: { id: string; name: string; cityId: string }[];
   cats: { slug: string; name: string; art: string; description: string }[];
   businessTypes: string[];
@@ -24,8 +26,10 @@ const MAX_PHOTOS = 6;
 const DRAFT_KEY = "ronaq-seller-draft";
 
 /** Seller questionnaire (§9.1). Steps are client-side; nothing is lost if you go back. Draft kept in this browser. */
-export function SellerWizard({ user, cities, areas, cats, businessTypes, modes, heard }: Props) {
+export function SellerWizard({ user, cities, allCities, areas, cats, businessTypes, modes, heard }: Props) {
   const [state, action] = useActionState(startSelling, undefined);
+  // after publishing, open the new dukaan with a full page load
+  useEffect(() => { if (state?.goTo) window.location.assign(state.goTo); }, [state]);
   const [step, setStep] = useState(0);
   const card = useRef<HTMLDivElement>(null);
   const firstStep = useRef(true);
@@ -37,7 +41,7 @@ export function SellerWizard({ user, cities, areas, cats, businessTypes, modes, 
   const [d, setD] = useState({
     categories: [] as string[], name: "", ownerName: user.name, description: "", businessType: "", experienceYears: "",
     cityId: cities[0]?.id ?? "", areaId: "", servesWholeCity: false, serviceAreaIds: [] as string[], serviceRadiusKm: "",
-    modes: [] as string[], phone: user.phone ?? "", whatsapp: "", referralSource: "", references: [] as WorkReference[],
+    modes: [] as string[], phone: user.phone ?? "", whatsapp: "", referralSource: "", references: [] as WorkReference[], extraCityIds: [] as string[], otherCities: "",
   });
   const [previews, setPreviews] = useState<string[]>([]);
   const [photoNote, setPhotoNote] = useState("");
@@ -67,6 +71,7 @@ export function SellerWizard({ user, cities, areas, cats, businessTypes, modes, 
       {(["name", "ownerName", "description", "businessType", "experienceYears", "cityId", "areaId", "serviceRadiusKm", "phone", "whatsapp", "referralSource"] as const).map((k) => <input key={k} type="hidden" name={k} value={d[k]} />)}
       {d.servesWholeCity && <input type="hidden" name="servesWholeCity" value="on" />}
       <ReferenceFields value={d.references} />
+      <OtherCitiesFields ids={d.extraCityIds} other={d.otherCities} />
 
       <div ref={card} className="card card-shadow bg-white p-5 sm:p-7">
         {step === 0 && (
@@ -103,13 +108,14 @@ export function SellerWizard({ user, cities, areas, cats, businessTypes, modes, 
           <div className="grid gap-5">
             <h2 className="font-display text-xl">Where and how you work</h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="field"><label className="label" htmlFor="w-city">City</label>
-                <Select id="w-city" className="input" value={d.cityId} onChange={(e) => setD((x) => ({ ...x, cityId: e.target.value, areaId: "", serviceAreaIds: [] }))}>{cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
+              <div className="field"><label className="label" htmlFor="w-city">Main city</label>
+                <Select id="w-city" className="input" value={d.cityId} onChange={(e) => setD((x) => ({ ...x, cityId: e.target.value, areaId: "", serviceAreaIds: [], extraCityIds: x.extraCityIds.filter((id) => id !== e.target.value) }))}>{cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
               </div>
               <div className="field"><label className="label" htmlFor="w-area">Your area</label>
                 <Select id="w-area" className="input" value={d.areaId} onChange={(e) => set("areaId", e.target.value)}><option value="">Choose…</option>{cityAreas.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</Select>
               </div>
             </div>
+            <OtherCitiesPicker cities={allCities} mainCityId={d.cityId} ids={d.extraCityIds} other={d.otherCities} onChange={(v) => setD((x) => ({ ...x, extraCityIds: v.ids, otherCities: v.other }))} />
             <fieldset className="grid gap-2">
               <legend className="label mb-1">How do you deliver your service?</legend>
               <div className="flex flex-wrap gap-2">{modes.map((m) => <button type="button" key={m.value} className={`check ${d.modes.includes(m.value) ? "!bg-ink !text-sand" : ""}`} aria-pressed={d.modes.includes(m.value)} onClick={() => toggle("modes", m.value)}>{m.label}</button>)}</div>

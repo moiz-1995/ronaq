@@ -7,6 +7,7 @@ import { AccountMenu } from "./AccountMenu";
 import { MobileTabs } from "./MobileTabs";
 import { MainNav } from "./MainNav";
 import { VendorModeGuard } from "./VendorModeGuard";
+import { ModeNotice } from "./ModeNotice";
 import { MODE_COOKIE } from "@/lib/mode";
 
 export async function SiteHeader() {
@@ -14,6 +15,9 @@ export async function SiteHeader() {
   const counts = user ? await getBadgeCounts(user) : null;
   const vendor = user ? await getMyVendor(user.id) : null;
   const vendorMode = !!vendor && (await cookies()).get(MODE_COOKIE)?.value === "vendor";
+  // with a dukaan, the bell and messages follow the mode you're in; the other mode's unread shows on the profile menu
+  const bell = !counts ? 0 : !vendor ? counts.notifications : counts.notifications - (vendorMode ? counts.notifCustomer : counts.notifVendor);
+  const otherUnread = !counts || !vendor ? 0 : vendorMode ? counts.notifCustomer + counts.inbox : counts.notifVendor + counts.vendorInbox;
   return (
     <>
       <header className="dot-bg sticky top-[env(safe-area-inset-top,0px)] z-40 text-sand">
@@ -28,23 +32,23 @@ export async function SiteHeader() {
                 {(user.role === "admin" || user.role === "moderator") && (
                   <Link href="/admin" className="hidden rounded-lg p-2 hover:bg-white/10 sm:inline-flex" aria-label="Admin console"><ShieldCheck size={20} /></Link>
                 )}
-                {vendor && (
-                  <Link href="/seller/inquiries" className="relative rounded-lg p-2 hover:bg-white/10" aria-label={`Vendor queries, ${counts!.vendorInbox} unread`}>
+                {vendorMode && (
+                  <Link href="/seller/inquiries" className="relative rounded-lg p-2 hover:bg-white/10" aria-label={`Dukaan queries, ${counts!.vendorInbox} unread`} title="Dukaan queries">
                     <Store size={20} />
                     {counts!.vendorInbox > 0 && <Dot n={counts!.vendorInbox} />}
                   </Link>
                 )}
                 {!vendorMode && (
-                  <Link href="/inbox" className="relative rounded-lg p-2 hover:bg-white/10" aria-label={`Messages, ${counts!.inbox} unread`}>
+                  <Link href="/inbox" className="relative rounded-lg p-2 hover:bg-white/10" aria-label={`Your messages to vendors, ${counts!.inbox} unread`} title="Your messages">
                     <MessageCircle size={20} />
                     {counts!.inbox > 0 && <Dot n={counts!.inbox} />}
                   </Link>
                 )}
-                <Link href="/notifications" className="relative rounded-lg p-2 hover:bg-white/10" aria-label={`Notifications, ${counts!.notifications} unread`}>
+                <Link href="/notifications" className="relative rounded-lg p-2 hover:bg-white/10" aria-label={`${vendorMode ? "Dukaan notifications" : "Notifications"}, ${bell} unread`} title={vendorMode ? "Dukaan notifications" : "Notifications"}>
                   <Bell size={20} />
-                  {counts!.notifications > 0 && <Dot n={counts!.notifications} />}
+                  {bell > 0 && <Dot n={bell} />}
                 </Link>
-                <AccountMenu name={user.name} isSeller={!!vendor} isStaff={user.role !== "user"} vendorMode={vendorMode} />
+                <AccountMenu name={user.name} isSeller={!!vendor} isStaff={user.role !== "user"} vendorMode={vendorMode} otherUnread={otherUnread} />
               </>
             ) : (
               <>
@@ -58,6 +62,7 @@ export async function SiteHeader() {
       </header>
       <MobileTabs signedIn={!!user} isSeller={!!vendor} vendorMode={vendorMode} />
       <VendorModeGuard isSeller={!!vendor} vendorMode={vendorMode} />
+      {vendor && <ModeNotice />}
     </>
   );
 }

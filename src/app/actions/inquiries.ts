@@ -84,7 +84,7 @@ export async function sendTestQuery() {
     vendorUnread: 1, consumerUnread: 0, lastMessageAt: now,
   }).returning();
   await db.insert(s.messages).values({ inquiryId: inq.id, senderId: user.id, senderRole: "consumer", createdAt: now, body: "Assalam o alaikum! Yeh ek test query hai. Agle mahine hamari shaadi hai, kya aap available hain aur rate kya hoga?" });
-  await notify(user.id, { type: "inquiry_new", title: "Nayi test query aayi hai", href: `/seller/inquiries/${inq.id}` });
+  await notify(user.id, { type: "inquiry_new", title: "New test query for your dukaan", href: `/seller/inquiries/${inq.id}` });
   redirect(`/seller/inquiries/${inq.id}`);
 }
 

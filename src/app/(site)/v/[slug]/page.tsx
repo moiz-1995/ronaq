@@ -55,6 +55,7 @@ export default async function VendorPage({ params }: { params: Promise<{ slug: s
   const area = areas.find((a) => a.id === v.areaId);
   const city = cities.find((c) => c.id === v.cityId);
   const servedAreas = areas.filter((a) => v.serviceAreaIds?.includes(a.id));
+  const alsoServes = [...cities.filter((c) => v.extraCityIds?.includes(c.id)).map((c) => c.name), v.otherCities].filter(Boolean).join(", ");
 
   // review eligibility for the viewer
   let canReview: ReturnType<typeof reviewEligibility> | null = null;
@@ -87,7 +88,7 @@ export default async function VendorPage({ params }: { params: Promise<{ slug: s
       )}
       {/* Cover */}
       <section className="relative">
-        <div className="relative h-[clamp(200px,34vw,380px)] overflow-hidden border-b-4 border-ink">
+        <div className="cover-drift relative h-[clamp(200px,34vw,380px)] overflow-hidden border-b-4 border-ink">
           <Picture src={cover} alt={`${v.name} cover`} fallbackKind={mainCat?.art ?? "henna"} seed={7} ratio={3.6} className="h-full w-full" />
           <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent" />
         </div>
@@ -123,6 +124,7 @@ export default async function VendorPage({ params }: { params: Promise<{ slug: s
               {v.workingHours && <Fact icon={Clock} k="Working hours" val={v.workingHours} />}
               {v.advanceNoticeDays != null && <Fact icon={CalendarDays} k="Book ahead" val={`At least ${v.advanceNoticeDays} days`} />}
               <Fact icon={MapPin} k="Serves" val={v.servesWholeCity ? `All of ${city?.name}` : [servedAreas.map((a) => a.name).join(", "), v.serviceRadiusKm ? `within ${v.serviceRadiusKm} km of ${area?.name}` : ""].filter(Boolean).join(" · ") || "Ask the vendor"} />
+              {alsoServes && <Fact icon={MapPin} k="Also serves" val={alsoServes} />}
             </dl>
             {!!v.modes?.length && (
               <ul className="mt-5 flex flex-wrap gap-2">

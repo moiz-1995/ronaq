@@ -1,6 +1,6 @@
 "use client";
 import { Select } from "@/components/ui/Select";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 import type { Attribute, Area, Category, City } from "@/db/schema";
@@ -16,9 +16,12 @@ type Props = {
   fixedCategory?: Category | null;
 };
 
+// Filters and sort open the results with a normal page load. In-page navigation was occasionally cancelled
+// mid-flight in production, which left people pressing "Show results" with nothing happening.
+const go = (href: string) => window.location.assign(href);
+
 /** FR-MKT-003…008: only the filters that make sense for the chosen category appear. */
 export function Filters({ cities, areas, categories, attributes, fixedCategory }: Props) {
-  const router = useRouter();
   const path = usePathname();
   const sp = useSearchParams();
   const formRef = useRef<HTMLFormElement>(null);
@@ -34,12 +37,12 @@ export function Filters({ cities, areas, categories, attributes, fixedCategory }
     for (const [k, v] of fd.entries()) if (typeof v === "string" && v !== "") qs.append(k, v);
     if (!fd.get("quote")) qs.set("quote", "0");
     else qs.delete("quote");
-    router.push(`${path}?${qs.toString()}`, { scroll: false });
+    go(`${path}?${qs.toString()}`);
   };
   const clear = () => {
     const keep = new URLSearchParams();
     if (sp.get("q")) keep.set("q", sp.get("q")!);
-    router.push(`${path}?${keep}`, { scroll: false });
+    go(`${path}?${keep}`);
     setCity("");
   };
   const count = [...new Set([...sp.keys()].filter((k) => !["q", "sort", "page", "quote"].includes(k)))].length;
@@ -152,7 +155,6 @@ export function Filters({ cities, areas, categories, attributes, fixedCategory }
 }
 
 export function SortSelect() {
-  const router = useRouter();
   const path = usePathname();
   const sp = useSearchParams();
   return (
@@ -165,7 +167,7 @@ export function SortSelect() {
           const qs = new URLSearchParams(sp);
           qs.set("sort", e.target.value);
           qs.delete("page");
-          router.push(`${path}?${qs}`, { scroll: false });
+          go(`${path}?${qs}`);
         }}
       >
         <option value="relevance">Best match</option>

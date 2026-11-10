@@ -1,7 +1,7 @@
 "use client";
 import { Select } from "@/components/ui/Select";
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import { WorkingHoursPicker } from "@/components/vendor/WorkingHoursPicker";
 import { ImagePlus } from "lucide-react";
@@ -13,23 +13,28 @@ import { SOCIALS } from "@/lib/socials";
 import { SocialIcon } from "@/components/vendor/SocialIcon";
 import { ReferenceFields, ReferencesEditor } from "@/components/vendor/ReferencesEditor";
 import type { WorkReference } from "@/lib/references";
+import { OtherCitiesFields, OtherCitiesPicker } from "@/components/vendor/OtherCitiesPicker";
 
 type Props = {
   v: Vendor & { serviceAreaIds: string[]; modes: string[] };
   art: string;
   cities: { id: string; name: string }[];
+  allCities: { id: string; name: string }[];
   areas: { id: string; name: string; cityId: string }[];
   businessTypes: string[];
   modes: { value: string; label: string }[];
 };
 
-export function ProfileForm({ v, art, cities, areas, businessTypes, modes }: Props) {
+export function ProfileForm({ v, art, cities, allCities, areas, businessTypes, modes }: Props) {
   const [state, action] = useActionState(saveVendorProfile, undefined);
+  // after publishing, open the new dukaan with a full page load
+  useEffect(() => { if (state?.goTo) window.location.assign(state.goTo); }, [state]);
   const [cityId, setCityId] = useState(v.cityId ?? cities[0]?.id ?? "");
   const [whole, setWhole] = useState(v.servesWholeCity);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [refs, setRefs] = useState<WorkReference[]>(v.workReferences ?? []);
+  const [more, setMore] = useState({ ids: v.extraCityIds ?? [], other: v.otherCities ?? "" });
   const cityAreas = areas.filter((a) => a.cityId === cityId);
   return (
     <form action={action} className="mt-6 grid gap-6">
@@ -65,8 +70,10 @@ export function ProfileForm({ v, art, cities, areas, businessTypes, modes }: Pro
 
       <section className="card grid gap-4 bg-white p-5 sm:grid-cols-2 sm:p-6">
         <h2 className="font-display text-lg sm:col-span-2">Where &amp; how you work</h2>
-        <div className="field"><label className="label" htmlFor="p-city">City</label><Select id="p-city" name="cityId" className="input" value={cityId} onChange={(e) => setCityId(e.target.value)}>{cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select></div>
+        <div className="field"><label className="label" htmlFor="p-city">Main city</label><Select id="p-city" name="cityId" className="input" value={cityId} onChange={(e) => setCityId(e.target.value)}>{cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select></div>
         <div className="field"><label className="label" htmlFor="p-area">Your area</label><Select id="p-area" name="areaId" className="input" defaultValue={v.areaId ?? ""}><option value="">Choose…</option>{cityAreas.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</Select></div>
+        <OtherCitiesFields ids={more.ids.filter((id) => id !== cityId)} other={more.other} />
+        <OtherCitiesPicker cities={allCities} mainCityId={cityId} ids={more.ids} other={more.other} onChange={setMore} className="sm:col-span-2" />
         <fieldset className="grid gap-2 sm:col-span-2">
           <legend className="label mb-1">How do you deliver your service?</legend>
           <div className="flex flex-wrap gap-2">{modes.map((m) => <label key={m.value} className="check"><input type="checkbox" name="modes" value={m.value} defaultChecked={v.modes.includes(m.value)} className="sr-only" /> {m.label}</label>)}</div>

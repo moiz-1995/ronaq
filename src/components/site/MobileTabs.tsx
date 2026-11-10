@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "motion/react";
 import { Home, Search, CalendarHeart, Heart, User, Inbox, Tag } from "lucide-react";
 
 /** §15: persistent navigation on phones — Dashboard, Marketplace, Events, Shortlist, Account. */
@@ -32,7 +33,7 @@ export function MobileTabs({ signedIn, isSeller, vendorMode }: { signedIn: boole
           return (
             <li key={label}>
               <Link href={href} className={`flex flex-col items-center gap-0.5 py-2 text-[11px] font-bold ${active ? "text-red" : "text-ink"}`} aria-current={active ? "page" : undefined}>
-                <span className={`grid h-8 w-12 place-items-center rounded-full ${active ? "tab-pop bg-red-soft" : ""}`}><I size={20} strokeWidth={active ? 2.6 : 2} /></span>
+                <span className="relative grid h-8 w-12 place-items-center">{active && <motion.span layoutId="tab-pill" className="absolute inset-0 rounded-full bg-red-soft" transition={{ type: "spring", stiffness: 480, damping: 36 }} />}<I size={20} strokeWidth={active ? 2.6 : 2} className={`relative ${active ? "tab-pop" : ""}`} /></span>
                 {label}
               </Link>
             </li>

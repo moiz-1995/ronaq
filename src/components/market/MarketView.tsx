@@ -6,7 +6,7 @@ import { db, schema as s } from "@/db";
 import type { Category } from "@/db/schema";
 import { getUser } from "@/lib/auth";
 import { getAreas, getAttributes, getCategories, getCities, getPrimaryEvent, getShortlistIds, hydrateVendorCards } from "@/lib/queries";
-import { parseSearchParams, recordSearch, searchVendors } from "@/lib/search";
+import { parseSearchParams, recordSearch, searchVendors, inCity } from "@/lib/search";
 import { VendorCard } from "@/components/vendor/VendorCard";
 import { Bunting, GiftBox } from "@/components/three/Lazy";
 import { Filters, SortSelect } from "./Filters";
@@ -30,7 +30,7 @@ export async function MarketView({ searchParams, category }: { searchParams: Rec
   let sponsored: Awaited<ReturnType<typeof hydrateVendorCards>> = [];
   if ((result.page ?? 1) === 1 && (await getSetting("featuredEnabled"))) {
     const feat = await db.select({ id: s.vendors.id }).from(s.vendors).innerJoin(s.vendorServices, eq(s.vendorServices.vendorId, s.vendors.id))
-      .where(and(eq(s.vendors.status, "approved"), eq(s.vendors.featured, true), ...(params.category ? [eq(s.vendorServices.categoryId, params.category)] : []), ...(params.city ? [eq(s.vendors.cityId, params.city)] : [])))
+      .where(and(eq(s.vendors.status, "approved"), eq(s.vendors.featured, true), ...(params.category ? [eq(s.vendorServices.categoryId, params.category)] : []), ...(params.city ? [inCity(params.city)] : [])))
       .limit(3);
     sponsored = await hydrateVendorCards([...new Set(feat.map((f) => f.id))]);
   }

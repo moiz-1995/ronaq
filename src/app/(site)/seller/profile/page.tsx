@@ -19,6 +19,7 @@ export default async function SellerProfile() {
         v={{ ...vendor, serviceAreaIds: vendor.serviceAreaIds ?? [], modes: vendor.modes ?? [] }}
         art={art}
         cities={cities.filter((c) => c.active).map((c) => ({ id: c.id, name: c.name }))}
+        allCities={cities.map((c) => ({ id: c.id, name: c.name }))}
         areas={areas.map((a) => ({ id: a.id, name: a.name, cityId: a.cityId }))}
         businessTypes={BUSINESS_TYPES}
         modes={SERVICE_MODES}

@@ -20,6 +20,7 @@ export default async function SellerOnboardingPage() {
       <SellerWizard
         user={{ name: user.name, phone: user.phone }}
         cities={cities.filter((c) => c.active).map((c) => ({ id: c.id, name: c.name }))}
+        allCities={cities.map((c) => ({ id: c.id, name: c.name }))}
         areas={areas.map((a) => ({ id: a.id, name: a.name, cityId: a.cityId }))}
         cats={cats.map((c) => ({ slug: c.slug, name: c.name, art: c.art, description: c.description ?? "" }))}
         businessTypes={BUSINESS_TYPES}

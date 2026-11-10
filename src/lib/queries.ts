@@ -3,6 +3,7 @@ import { and, asc, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
 import { cache } from "react";
 import { db, schema as s } from "@/db";
 import type { User } from "@/db/schema";
+import { notificationAudience } from "./mode";
 
 export const getCities = cache(async () => db.select().from(s.cities).orderBy(asc(s.cities.sortOrder)));
 export const getActiveCities = cache(async () => db.select().from(s.cities).where(eq(s.cities.active, true)).orderBy(asc(s.cities.sortOrder)));
@@ -31,7 +32,8 @@ export const getCategoryCounts = cache(async () => {
 export const getMyVendor = cache(async (userId: string) => db.query.vendors.findFirst({ where: eq(s.vendors.ownerId, userId) }));
 
 export const getBadgeCounts = cache(async (user: User) => {
-  const [n] = await db.select({ n: sql<number>`count(*)` }).from(s.notifications).where(and(eq(s.notifications.userId, user.id), isNull(s.notifications.readAt)));
+  const unread = await db.select({ type: s.notifications.type, href: s.notifications.href }).from(s.notifications).where(and(eq(s.notifications.userId, user.id), isNull(s.notifications.readAt)));
+  const forVendor = unread.filter((x) => notificationAudience(x) === "vendor").length, forCustomer = unread.filter((x) => notificationAudience(x) === "customer").length;
   const [c] = await db.select({ n: sql<number>`coalesce(sum(${s.inquiries.consumerUnread}),0)` }).from(s.inquiries).where(eq(s.inquiries.consumerId, user.id));
   let vendorUnread = 0;
   const v = await getMyVendor(user.id);
@@ -39,7 +41,7 @@ export const getBadgeCounts = cache(async (user: User) => {
     const [x] = await db.select({ n: sql<number>`coalesce(sum(${s.inquiries.vendorUnread}),0)` }).from(s.inquiries).where(eq(s.inquiries.vendorId, v.id));
     vendorUnread = Number(x.n);
   }
-  return { notifications: Number(n.n), inbox: Number(c.n), vendorInbox: vendorUnread };
+  return { notifications: unread.length, notifVendor: forVendor, notifCustomer: forCustomer, inbox: Number(c.n), vendorInbox: vendorUnread };
 });
 
 export async function getPrimaryEvent(userId: string) {

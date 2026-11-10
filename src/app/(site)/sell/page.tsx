@@ -9,6 +9,8 @@ import { Stall, Bunting } from "@/components/three/Lazy";
 import { FoundingBadge } from "@/components/ui/badges";
 import { Marquee } from "@/components/site/Marquee";
 import { CountUp } from "@/components/motion/CountUp";
+import { Words } from "@/components/motion/Words";
+import { Magnetic } from "@/components/motion/Magnetic";
 
 export const metadata = { title: "Start selling" };
 
@@ -29,7 +31,7 @@ export default async function SellPage() {
             <h1 className="h-display mt-3 text-[clamp(2.4rem,7vw,5.2rem)]">Aap ka hunar, aap ki dukaan.</h1>
             <p className="mt-4 max-w-[50ch] text-lg text-sand/85">Mehndi artist, ghar ka khana, decorator, baker ya dhol wala? Apni online dukaan banayein, apna kaam aur rates dikhayein, aur shaadi ya function plan karne wale khareedar se seedha queries paayein.</p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
-              <Link href={cta} className="btn btn-red !border-sand">{vendor ? "Go to my dashboard" : "Start selling"} <ArrowRight size={16} /></Link>
+              <Magnetic><Link href={cta} className="btn btn-red !border-sand">{vendor ? "Go to my dashboard" : "Start selling"} <ArrowRight size={16} /></Link></Magnetic>
               <Link href="/sell/claim" className="btn btn-sand">Claim code hai?</Link>
             </div>
             <p className="mt-3 max-w-[56ch] text-sm text-sand/80"><b>Claim code kya hai?</b> Agar Ronaq team ne aap ke liye profile banayi hai to woh aap ko ek code dete hain. Is code se woh profile aap ke account mein aa jati hai. Khud dukaan bana rahe hain to code ki zaroorat nahi.</p>
@@ -44,7 +46,7 @@ export default async function SellPage() {
       </section>
       <Marquee tone="blue" items={["Free listing for founding vendors", "No commission", "Families message you directly", "We help you set up", "Your number stays private"]} />
       <section className="wrap py-16">
-        <h2 className="h-display text-[clamp(2rem,5vw,3.4rem)]">What you get</h2>
+        <Words text="What you get" className="h-display text-[clamp(2rem,5vw,3.4rem)]" />
         <div data-stagger suppressHydrationWarning className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {[
             { i: Camera, t: "A beautiful profile", d: "Your best work up front, with honest prices, the areas you cover and how you work." },
