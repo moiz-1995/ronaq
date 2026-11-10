@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/Select";
 import { useActionState } from "react";
 import { Plus } from "lucide-react";
 import { addService } from "@/app/actions/seller";
@@ -10,10 +11,10 @@ export function AddServiceForm({ cats }: { cats: { id: string; name: string }[] 
   return (
     <form action={action} className="card mt-6 flex flex-wrap items-end gap-3 border-dashed bg-sand/50 p-4">
       <div className="field min-w-[220px] flex-1">
-        <label className="label" htmlFor="new-cat">Offer another service</label>
-        <select id="new-cat" name="categoryId" className="input">{cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+        <label className="label" htmlFor="new-cat">Aur koi service add karein</label>
+        <Select id="new-cat" name="categoryId" className="input">{cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
       </div>
-      <Submit className="btn btn-red"><Plus size={16} /> Add service</Submit>
+      <Submit className="btn btn-red"><Plus size={16} /> Service add karein</Submit>
       <FormMessage state={state} />
     </form>
   );

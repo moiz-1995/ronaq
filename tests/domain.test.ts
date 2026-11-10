@@ -203,3 +203,24 @@ describe("vendor and customer views", () => {
     expect(customerPageName("/contact")).toBeNull();
   });
 });
+
+import { TIME_SLOTS, formatHours, parseHours } from "@/lib/hours";
+describe("working hours", () => {
+  it("covers early morning to late night in half hours", () => {
+    expect(TIME_SLOTS[0]).toBe("6:00 AM");
+    expect(TIME_SLOTS).toContain("12:00 AM");
+    expect(TIME_SLOTS.at(-1)).toBe("3:00 AM");
+  });
+  it("reads back what it wrote", () => expect(parseHours(formatHours("10:00 AM", "9:30 PM"))).toEqual({ from: "10:00 AM", to: "9:30 PM" }));
+  it("understands older short times", () => expect(parseHours("10am – 9pm")).toEqual({ from: "10:00 AM", to: "9:00 PM" }));
+  it("recognises flexible", () => expect(parseHours("Flexible")).toEqual({ flexible: true }));
+  it("keeps free text it can't read", () => expect(parseHours("10am – 9pm, closed Friday")).toEqual({ legacy: "10am – 9pm, closed Friday" }));
+  it("handles empty", () => expect(parseHours("")).toBeNull());
+});
+
+describe("publishing a new vendor's default service", () => {
+  it("counts a service whose price isn't filled in yet", () => {
+    const c = completeness({ name: "X", cityId: "c", modes: ["on_site"], email: "a@b.pk", services: [{ title: "Gifts", pricingModel: "per_item", priceAmount: null }], portfolioCount: 0 });
+    expect(c.ready).toBe(true);
+  });
+});

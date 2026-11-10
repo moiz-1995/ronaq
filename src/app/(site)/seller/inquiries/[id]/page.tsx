@@ -12,16 +12,16 @@ export const metadata = { title: "Inquiry" };
 export default async function SellerThread({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await requireUser(`/seller/inquiries/${id}`);
-  const t = await loadThreadFor(id, user.id);
+  const t = await loadThreadFor(id, user.id, "vendor");
   if (!t || t.role !== "vendor") notFound();
-  if (t.inq.status === "sent") await track("inquiry_delivered", { userId: user.id });
+  if (t.inq.status === "sent" && !t.inq.isTest) await track("inquiry_delivered", { userId: user.id });
   await markThreadRead(id, "vendor");
   const consumer = await db.query.users.findFirst({ where: eq(s.users.id, t.inq.consumerId) });
   return (
     <div className="wrap max-w-3xl py-8">
-      <Link href="/seller/inquiries" className="text-sm font-bold text-blue underline">← All inquiries</Link>
+      <Link href="/seller/inquiries" className="text-sm font-bold text-blue underline">← Saari queries</Link>
       <div className="mt-4">
-        <Thread inq={t.inq} role="vendor" title={consumer?.name ?? "Customer"} subtitle="Their contact details stay private unless they share them in the chat." />
+        <Thread inq={t.inq} role="vendor" title={t.inq.isTest ? "Test khareedar" : consumer?.name ?? "Khareedar"} subtitle="Khareedar ka number private rehta hai, jab tak woh khud chat mein na dein." />
       </div>
     </div>
   );

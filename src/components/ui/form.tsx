@@ -2,10 +2,10 @@
 import { useFormStatus } from "react-dom";
 import { Loader2 } from "lucide-react";
 
-export function Submit({ children, className = "btn btn-red", pendingText }: { children: React.ReactNode; className?: string; pendingText?: string }) {
+export function Submit({ children, className = "btn btn-red", pendingText, name, value }: { children: React.ReactNode; className?: string; pendingText?: string; name?: string; value?: string }) {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" className={className} disabled={pending} aria-busy={pending}>
+    <button type="submit" name={name} value={value} className={className} disabled={pending} aria-busy={pending}>
       {pending ? <><Loader2 size={16} className="animate-spin" /> {pendingText ?? "Saving…"}</> : children}
     </button>
   );

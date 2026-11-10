@@ -9,10 +9,23 @@ import { audit, notify, track } from "@/lib/track";
 import { publishFields } from "@/lib/publish";
 import { getSetting, setSetting, type ReviewPolicy } from "@/lib/settings";
 import { refreshRating } from "@/lib/ratings";
+import { appUrl } from "@/lib/email";
+import { createResetToken } from "@/lib/passwordReset";
 
 type Result = { error?: string; message?: string; ok?: boolean } | undefined;
 const str = (v: FormDataEntryValue | null, max = 300) => { const x = String(v ?? "").trim().slice(0, max); return x || null; };
 const slugify = (x: string) => x.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 60);
+
+/** For customers and vendors only, so a staff login can't be taken over with a link. */
+export async function createResetLink(_: unknown, form: FormData): Promise<{ error?: string; link?: string } | undefined> {
+  const admin = await requireAdmin();
+  const id = String(form.get("id"));
+  const u = await db.query.users.findFirst({ where: eq(s.users.id, id) });
+  if (!u || u.role !== "user") return { error: "Reset links are only for customer and vendor accounts." };
+  const raw = await createResetToken(u.id, 24 * 60 * 60 * 1000);
+  await audit({ actorId: admin.id, action: "user.reset_link_created", objectType: "user", objectId: u.id });
+  return { link: `${appUrl()}/reset?token=${raw}` };
+}
 
 // ---------- vendors (FR-ADM-002, FR-SEL-006/007) ----------
 export async function moderateVendor(_: unknown, form: FormData): Promise<Result> {

@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/Select";
 import Link from "next/link";
 import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
 import { Plus, X, Sparkles } from "lucide-react";
@@ -101,9 +102,9 @@ export function DatesStep({ types, ev }: { types: { value: string; label: string
           <div className="field sm:col-span-2"><label className="label" htmlFor="name">Event name</label><input id="name" name="name" className="input" required defaultValue={ev?.name ?? ""} placeholder="e.g. Ayesha & Bilal's wedding" /></div>
           <div className="field">
             <label className="label" htmlFor="type">Type</label>
-            <select id="type" name="type" className="input" value={type} onChange={(e) => { setType(e.target.value); setLabel(types.find((t) => t.value === e.target.value)?.heading ?? ""); }}>
+            <Select id="type" name="type" className="input" value={type} onChange={(e) => { setType(e.target.value); setLabel(types.find((t) => t.value === e.target.value)?.heading ?? ""); }}>
               {types.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-            </select>
+            </Select>
           </div>
           <div className="field"><label className="label" htmlFor="label">Heading word</label><input id="label" name="label" className="input" value={label} maxLength={28} onChange={(e) => setLabel(e.target.value)} placeholder="Shaadi" /><p className="hint">Appears as “{label || "…"} ki Ronaq”.</p></div>
           <div className="field"><label className="label" htmlFor="date">Date</label><input id="date" name="date" type="date" className="input" defaultValue={ev?.date ?? ""} /><p className="hint">Not sure yet? Leave it blank and add it later.</p></div>

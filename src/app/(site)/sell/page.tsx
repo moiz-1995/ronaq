@@ -8,6 +8,7 @@ import { getMyVendor } from "@/lib/queries";
 import { Stall, Bunting } from "@/components/three/Lazy";
 import { FoundingBadge } from "@/components/ui/badges";
 import { Marquee } from "@/components/site/Marquee";
+import { CountUp } from "@/components/motion/CountUp";
 
 export const metadata = { title: "Start selling" };
 
@@ -23,16 +24,17 @@ export default async function SellPage() {
       <section className="dot-bg relative overflow-hidden text-sand">
         <Bunting count={18} className="h-16" />
         <div className="wrap grid items-center gap-8 pb-12 lg:grid-cols-[1.1fr_1fr]">
-          <div className="min-w-0">
-            <p className="kicker !text-[#ff8a8f]">For vendors</p>
-            <h1 className="h-display mt-3 text-[clamp(2.4rem,7vw,5.2rem)]">Your hunar, your own dukaan.</h1>
-            <p className="mt-4 max-w-[50ch] text-lg text-sand/85">Henna artist, home caterer, decorator, baker or dhol wala? Get a proper storefront with your portfolio, prices and service areas, and receive inquiries from families planning real events.</p>
+          <div className="rise-row min-w-0">
+            <p className="kicker !text-[#ff8a8f]">Dukaandaar ke liye</p>
+            <h1 className="h-display mt-3 text-[clamp(2.4rem,7vw,5.2rem)]">Aap ka hunar, aap ki dukaan.</h1>
+            <p className="mt-4 max-w-[50ch] text-lg text-sand/85">Mehndi artist, ghar ka khana, decorator, baker ya dhol wala? Apni online dukaan banayein, apna kaam aur rates dikhayein, aur shaadi ya function plan karne wale khareedar se seedha queries paayein.</p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Link href={cta} className="btn btn-red !border-sand">{vendor ? "Go to my dashboard" : "Start selling"} <ArrowRight size={16} /></Link>
-              <Link href="/sell/claim" className="btn btn-sand">I have a claim code</Link>
+              <Link href="/sell/claim" className="btn btn-sand">Claim code hai?</Link>
             </div>
+            <p className="mt-3 max-w-[56ch] text-sm text-sand/80"><b>Claim code kya hai?</b> Agar Ronaq team ne aap ke liye profile banayi hai to woh aap ko ek code dete hain. Is code se woh profile aap ke account mein aa jati hai. Khud dukaan bana rahe hain to code ki zaroorat nahi.</p>
             <div className="mt-8 flex flex-wrap items-center gap-6">
-              <div><p className="font-shade text-6xl leading-none">{left}</p><p className="text-sm text-sand/75">founding spots left of {cap}</p></div>
+              <div><p className="font-shade text-6xl leading-none"><CountUp value={left} /></p><p className="text-sm text-sand/75">founding spots left of {cap}</p></div>
               <FoundingBadge className="ml-4" />
             </div>
           </div>
@@ -43,7 +45,7 @@ export default async function SellPage() {
       <Marquee tone="blue" items={["Free listing for founding vendors", "No commission", "Families message you directly", "We help you set up", "Your number stays private"]} />
       <section className="wrap py-16">
         <h2 className="h-display text-[clamp(2rem,5vw,3.4rem)]">What you get</h2>
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div data-stagger suppressHydrationWarning className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {[
             { i: Camera, t: "A beautiful profile", d: "Your best work up front, with honest prices, the areas you cover and how you work." },
             { i: MessageCircle, t: "Real inquiries", d: "Families send the date, guest count and budget they choose to share. Reply from your phone." },
@@ -57,11 +59,11 @@ export default async function SellPage() {
         </div>
       </section>
       <section className="wrap pb-16">
-        <div className="card grid gap-6 bg-sand p-6 sm:p-10 md:grid-cols-3">
+        <div data-stagger suppressHydrationWarning className="card grid gap-6 bg-sand p-6 sm:p-10 md:grid-cols-3">
           {[
-            ["1", "Create your profile", "Tell us what you offer, where and how. About 5 minutes."],
-            ["2", "Publish straight away", "Your profile goes live as soon as you finish. No photos needed to start."],
-            ["3", "Stand out", "Add photos, prices and past work whenever you like. We'll show you what to fill in."],
+            ["1", "Apni dukaan banayein", "Batayein aap kya kaam karte hain aur kahan. Sirf 5 minute."],
+            ["2", "Foran publish karein", "Form mukammal hote hi dukaan live. Shuru mein photos zaroori nahi."],
+            ["3", "Aur behtar banayein", "Photos, rates aur pichla kaam jab chahein add karein. Hum batayenge kya bharna hai."],
           ].map(([n, t, d]) => (
             <div key={n}><span className="grid h-12 w-12 place-items-center rounded-full border-[3px] border-ink bg-red font-display text-sand">{n}</span><h3 className="mt-3 font-display text-lg">{t}</h3><p className="text-sm text-mute">{d}</p></div>
           ))}

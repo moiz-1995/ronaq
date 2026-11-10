@@ -5,7 +5,7 @@ import { ProfileForm } from "./ProfileForm";
 import { db, schema as s } from "@/db";
 import { eq } from "drizzle-orm";
 
-export const metadata = { title: "Business profile" };
+export const metadata = { title: "Dukaan ki profile" };
 
 export default async function SellerProfile() {
   const { vendor } = await requireVendorPage("/seller/profile");
@@ -13,8 +13,8 @@ export default async function SellerProfile() {
   const art = cats.find((c) => c.id === svc?.categoryId)?.art ?? "henna";
   return (
     <div className="wrap max-w-4xl py-8">
-      <h1 className="h-display text-3xl">Business profile</h1>
-      <p className="mt-1 text-mute">What families see on your page. Changes to your name, description, cover or logo on a live profile are checked quickly by our team.</p>
+      <h1 className="h-display text-3xl">Dukaan ki profile</h1>
+      <p className="mt-1 text-mute">Khareedar aap ke page par yehi dekhte hain.</p>
       <ProfileForm
         v={{ ...vendor, serviceAreaIds: vendor.serviceAreaIds ?? [], modes: vendor.modes ?? [] }}
         art={art}

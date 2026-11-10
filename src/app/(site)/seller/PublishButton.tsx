@@ -6,8 +6,8 @@ import { publishProfile } from "@/app/actions/seller";
 export function PublishButton({ ready, resubmit }: { ready: boolean; resubmit: boolean }) {
   const [pending, start] = useTransition();
   return (
-    <button className="btn btn-sm btn-red" disabled={!ready || pending} onClick={() => start(() => publishProfile())} title={ready ? "" : "Add the missing basics first"}>
-      {pending ? "One moment…" : resubmit ? "Submit for review" : "Publish my profile"}
+    <button className="btn btn-sm btn-red" disabled={!ready || pending} onClick={() => start(() => publishProfile())} title={ready ? "" : "Pehle zaroori cheezein bharein"}>
+      {pending ? "Ek minute…" : resubmit ? "Review ke liye bhejein" : "Dukaan publish karein"}
     </button>
   );
 }

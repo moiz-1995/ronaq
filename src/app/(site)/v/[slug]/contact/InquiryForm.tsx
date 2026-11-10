@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/Select";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { Lock } from "lucide-react";
@@ -23,10 +24,10 @@ export function InquiryForm({ vendorId, vendorName, events, defaultEventId, chec
 
       <div className="field">
         <label className="label" htmlFor="eventId">Which event is this for?</label>
-        <select id="eventId" name="eventId" className="input" value={eventId} onChange={(e) => setEventId(e.target.value)}>
+        <Select id="eventId" name="eventId" className="input" value={eventId} onChange={(e) => setEventId(e.target.value)}>
           <option value="">Not linked to an event</option>
           {events.map((e) => <option key={e.id} value={e.id}>{e.name}{e.date ? ` · ${formatDate(e.date)}` : ""}</option>)}
-        </select>
+        </Select>
         {!events.length && <p className="hint">Tip: <Link className="underline" href="/events/new">create an event</Link> to share your date and guest count in one tap.</p>}
       </div>
 

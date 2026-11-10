@@ -6,7 +6,7 @@ import { requireVendorPage } from "@/lib/seller";
 import { formatDate, monthGrid, todayPKT } from "@/lib/time";
 import { DayToggle } from "./DayToggle";
 
-export const metadata = { title: "Availability" };
+export const metadata = { title: "Kab free hain" };
 
 export default async function SellerAvailability({ searchParams }: { searchParams: Promise<{ m?: string }> }) {
   const { vendor } = await requireVendorPage("/seller/availability");
@@ -20,8 +20,8 @@ export default async function SellerAvailability({ searchParams }: { searchParam
   const next = mo === 12 ? `${y + 1}-01` : `${y}-${String(mo + 1).padStart(2, "0")}`;
   return (
     <div className="wrap max-w-3xl py-8">
-      <h1 className="h-display text-3xl">Availability</h1>
-      <p className="mt-1 text-mute">Tap a day to mark it <b>limited</b>, tap again for <b>fully booked</b>, once more to clear it. Families see this as a guide and still confirm with you.</p>
+      <h1 className="h-display text-3xl">Kab free hain?</h1>
+      <p className="mt-1 text-mute">Din par ek baar dabayein to <b>limited</b>, dobara dabayein to <b>poora booked</b>, teesri baar saaf. Khareedar ise dekh kar aap se confirm karte hain.</p>
       <section className="card card-shadow mt-6 overflow-hidden bg-white">
         <header className="flex items-center justify-between bg-ink p-3 text-sand">
           <Link href={`/seller/availability?m=${prev}`} aria-label="Previous month" className="rounded-lg p-2 hover:bg-white/10"><ChevronLeft /></Link>
@@ -34,7 +34,7 @@ export default async function SellerAvailability({ searchParams }: { searchParam
             <DayToggle key={d} date={d} status={(map[d] as "limited" | "unavailable" | undefined) ?? null} inMonth={Number(d.slice(5, 7)) === mo} past={d < today} />
           ))}
         </div>
-        <p className="flex flex-wrap gap-4 p-3 text-xs"><span className="rounded bg-white px-2 ring-2 ring-ink/10">Open</span><span className="rounded bg-sun px-2">Limited</span><span className="rounded bg-ink px-2 text-sand">Fully booked</span></p>
+        <p className="flex flex-wrap gap-4 p-3 text-xs"><span className="rounded bg-white px-2 ring-2 ring-ink/10">Free</span><span className="rounded bg-sun px-2">Limited</span><span className="rounded bg-ink px-2 text-sand">Poora booked</span></p>
       </section>
     </div>
   );

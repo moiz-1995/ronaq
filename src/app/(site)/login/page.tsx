@@ -11,14 +11,14 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   if (await getUser()) redirect(safeNext(next));
   return (
     <AuthShell
-      title="Welcome back"
-      sub={reason ?? (next ? "Sign in to continue where you left off." : "Sign in to plan, save vendors and message them.")}
+      title="Khush aamdeed!"
+      sub={reason ?? (next ? "Sign in karein aur wahin se shuru karein." : "Welcome back. Sign in karein aur apna kaam jaari rakhein.")}
     >
       <AuthForm mode="login" next={next} />
       <p className="text-sm">
-        New to Ronaq? <Link className="font-bold text-red underline" href={`/signup${next ? `?next=${encodeURIComponent(next)}` : ""}`}>Create a free account</Link>
+        Ronaq par naye hain? <Link className="font-bold text-red underline" href={`/signup${next ? `?next=${encodeURIComponent(next)}` : ""}`}>Free account banayein</Link>
       </p>
-      <p className="rounded-xl bg-sand px-3 py-2 text-sm"><b>Selling on Ronaq?</b> Sign in here with the same account, then choose <b>Switch to vendor</b> from your profile menu.</p>
+      <p className="rounded-xl bg-sand px-3 py-2 text-sm"><b>Dukaandaar hain?</b> Isi account se sign in karein, phir profile menu se <b>Switch to dukaandaar</b> dabayein.</p>
       <DemoLogins />
     </AuthShell>
   );

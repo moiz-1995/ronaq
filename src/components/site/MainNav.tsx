@@ -9,7 +9,7 @@ export function MainNav({ signedIn, isSeller, vendorMode }: { signedIn: boolean;
   if (isSeller && (vendorMode || path.startsWith("/seller"))) {
     return (
       <nav className="hidden items-center gap-1 text-sm font-bold md:flex" aria-label="Main">
-        <Link className={cls} href="/seller">Dashboard</Link>
+        <Link className={cls} href="/seller">Meri Dukaan</Link>
         <Link className={cls} href="/seller/inquiries">Queries</Link>
         <Link className={cls} href="/seller/services">Services</Link>
         <Link className={cls} href="/marketplace">Marketplace</Link>
@@ -22,7 +22,7 @@ export function MainNav({ signedIn, isSeller, vendorMode }: { signedIn: boolean;
       <Link className={cls} href={signedIn ? "/dashboard" : "/plan"}>Plan an event</Link>
       {signedIn && <Link className={cls} href="/events">Events</Link>}
       {signedIn && <Link className={cls} href="/shortlist">Shortlist</Link>}
-      {!signedIn && <Link className={cls} href="/sell">For vendors</Link>}
+      {!signedIn && <Link className={cls} href="/sell">Dukaandaar</Link>}
     </nav>
   );
 }

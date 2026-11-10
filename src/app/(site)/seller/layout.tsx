@@ -6,12 +6,15 @@ import { SellerNav } from "./SellerNav";
 import { StatusChip } from "@/components/ui/badges";
 import { MODE_COOKIE } from "@/lib/mode";
 import { ModeSync } from "./ModeSync";
+import { PublishBar } from "./PublishBar";
+import { vendorCompleteness } from "@/lib/seller";
 
 export default async function SellerLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser("/seller");
   const vendor = await db.query.vendors.findFirst({ where: eq(s.vendors.ownerId, user.id) });
   if (!vendor) return <>{children}</>;
   const synced = (await cookies()).get(MODE_COOKIE)?.value === "vendor";
+  const c = vendor.status === "draft" || vendor.status === "rejected" ? await vendorCompleteness(vendor.id) : null;
   return (
     <div>
       {!synced && <ModeSync />}
@@ -21,6 +24,7 @@ export default async function SellerLayout({ children }: { children: React.React
           <SellerNav />
         </div>
       </div>
+      {c && <PublishBar status={vendor.status} statusReason={vendor.statusReason} ready={c.ready} missing={c.items.filter((i) => !i.done && !i.optional)} />}
       {children}
     </div>
   );

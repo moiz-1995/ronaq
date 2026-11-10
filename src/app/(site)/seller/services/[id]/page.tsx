@@ -20,7 +20,7 @@ export default async function ServicePage({ params }: { params: Promise<{ id: st
   ]);
   return (
     <div className="wrap max-w-3xl py-8">
-      <Link href="/seller/services" className="text-sm font-bold text-blue underline">← All services</Link>
+      <Link href="/seller/services" className="text-sm font-bold text-blue underline">← Saari services</Link>
       <p className="kicker mt-4">{cat?.name}</p>
       <h1 className="h-display mt-1 text-3xl">{svc.title}</h1>
       <ServiceForm

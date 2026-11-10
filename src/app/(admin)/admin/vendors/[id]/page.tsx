@@ -29,7 +29,7 @@ export default async function AdminVendor({ params }: { params: Promise<{ id: st
     getAllCategories(), getAreas(), getCities(),
     v.ownerId ? db.query.users.findFirst({ where: eq(s.users.id, v.ownerId) }) : Promise.resolve(null),
     db.select({ a: s.auditLog, actor: s.users.name }).from(s.auditLog).leftJoin(s.users, eq(s.users.id, s.auditLog.actorId)).where(and(eq(s.auditLog.objectType, "vendor"), eq(s.auditLog.objectId, id))).orderBy(desc(s.auditLog.createdAt)).limit(30),
-    db.select({ n: sql<number>`count(*)` }).from(s.inquiries).where(eq(s.inquiries.vendorId, id)),
+    db.select({ n: sql<number>`count(*)` }).from(s.inquiries).where(and(eq(s.inquiries.vendorId, id), eq(s.inquiries.isTest, false))),
     getSetting("featuredEnabled"),
   ]);
   const c = completeness({ ...v, services, portfolioCount: portfolio.filter((p) => p.status === "visible").length });

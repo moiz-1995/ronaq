@@ -1,3 +1,4 @@
+import { Select } from "@/components/ui/Select";
 import Link from "next/link";
 import { desc } from "drizzle-orm";
 import { Plus } from "lucide-react";
@@ -35,8 +36,8 @@ export default async function AdminVendors({ searchParams }: { searchParams: Pro
         <form className="flex flex-wrap gap-2">
           <input type="hidden" name="status" value={status} />
           <input name="q" defaultValue={sp.q} placeholder="Search name…" className="input !min-h-10 !w-56 !py-1.5 text-sm" aria-label="Search vendors" />
-          <select name="city" defaultValue={sp.city ?? ""} className="input !min-h-10 !w-auto !py-1.5 text-sm" aria-label="City"><option value="">All cities</option>{cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
-          <select name="category" defaultValue={sp.category ?? ""} className="input !min-h-10 !w-auto !py-1.5 text-sm" aria-label="Category"><option value="">All categories</option>{cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+          <Select name="city" defaultValue={sp.city ?? ""} className="input !min-h-10 !w-auto !py-1.5 text-sm" aria-label="City"><option value="">All cities</option>{cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
+          <Select name="category" defaultValue={sp.category ?? ""} className="input !min-h-10 !w-auto !py-1.5 text-sm" aria-label="Category"><option value="">All categories</option>{cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
           <button className="btn btn-sm btn-ink">Filter</button>
         </form>
         <div className="overflow-x-auto rounded-2xl border-2 border-ink/10 bg-white">

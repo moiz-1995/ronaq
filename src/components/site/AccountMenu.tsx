@@ -32,17 +32,17 @@ export function AccountMenu({ name, isSeller, isStaff, vendorMode }: { name: str
       </button>
       {open && (
         <div role="menu" className="card card-shadow absolute right-0 top-12 z-50 w-56 overflow-hidden p-1.5 text-ink">
-          <p className="px-3 py-2 text-xs text-mute">Signed in as <b className="text-ink">{name}</b>{inVendorMode ? " · vendor mode" : ""}</p>
+          <p className="px-3 py-2 text-xs text-mute">Signed in as <b className="text-ink">{name}</b>{inVendorMode ? " · dukaandaar" : ""}</p>
           {isSeller ? (
             <button role="menuitem" type="button" disabled={switching} className={switchBtn} onClick={() => start(async () => { await switchMode(inVendorMode ? "customer" : "vendor", inVendorMode ? "/dashboard" : "/seller"); setOpen(false); })}>
-              <ArrowLeftRight size={15} /> {inVendorMode ? "Switch to customer" : "Switch to vendor"}
+              <ArrowLeftRight size={15} /> {inVendorMode ? "Switch to khareedar" : "Switch to dukaandaar"}
             </button>
           ) : (
-            <Link role="menuitem" href="/seller/onboarding" onClick={() => setOpen(false)} className={switchBtn}><ArrowLeftRight size={15} /> Switch to vendor</Link>
+            <Link role="menuitem" href="/seller/onboarding" onClick={() => setOpen(false)} className={switchBtn}><ArrowLeftRight size={15} /> Switch to dukaandaar</Link>
           )}
-          {!isSeller && !inVendorMode && <p className="-mt-0.5 mb-1 px-3 text-[11px] text-mute">Sell your services on Ronaq with the same account.</p>}
+          {!isSeller && !inVendorMode && <p className="-mt-0.5 mb-1 px-3 text-[11px] text-mute">Isi account se apni dukaan kholein.</p>}
           {[
-            ...(inVendorMode ? [["/seller", "Vendor dashboard"], ["/seller/inquiries", "Queries"]] : [["/dashboard", "Dashboard"], ["/inbox", "Messages"]]),
+            ...(inVendorMode ? [["/seller", "Meri Dukaan"], ["/seller/inquiries", "Queries"]] : [["/dashboard", "Dashboard"], ["/inbox", "Messages"]]),
             ["/account", "Account & settings"],
             ...(isStaff ? [["/admin", "Admin console"]] : []),
           ].map(([href, label]) => (

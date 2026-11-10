@@ -6,6 +6,9 @@ import { db, schema as s } from "@/db";
 import { checkPassword, createSession, destroySession, hashPassword, safeNext, getUser } from "@/lib/auth";
 import { track } from "@/lib/track";
 import { rateLimit, TOO_MANY } from "@/lib/ratelimit";
+import { notify } from "@/lib/track";
+import { appUrl, emailEnabled, sendEmail } from "@/lib/email";
+import { clearResetTokens, createResetToken, findResetToken } from "@/lib/passwordReset";
 
 export type FormState = { error?: string; fields?: Record<string, string>; ok?: boolean; message?: string } | undefined;
 
@@ -52,6 +55,38 @@ export async function signInAction(_: FormState, form: FormData): Promise<FormSt
 export async function signOutAction() {
   await destroySession();
   redirect("/");
+}
+
+/** The reply is the same whether or not the email has an account, so this can't be used to discover who is on Ronaq. */
+export async function requestPasswordReset(_: FormState, form: FormData): Promise<FormState> {
+  const email = String(form.get("email") ?? "").trim().toLowerCase();
+  if (!z.string().email().safeParse(email).success) return { error: "Sahi email likhein (enter a valid email)." };
+  if (!(await rateLimit("forgot", 10, 60 * 60 * 1000)) || !(await rateLimit("forgot-email", 3, 60 * 60 * 1000, email))) return { error: TOO_MANY };
+  const byEmail = emailEnabled();
+  const user = await db.query.users.findFirst({ where: eq(s.users.email, email) });
+  if (user && user.status === "active") {
+    if (byEmail) {
+      const raw = await createResetToken(user.id, 60 * 60 * 1000);
+      await sendEmail(email, "Ronaq: naya password banayein", `Assalam o alaikum ${user.name},\n\nNaya password banane ke liye yeh link kholein (1 ghante tak chalega):\n${appUrl()}/reset?token=${raw}\n\nAgar aap ne yeh nahi maanga to is email ko chhor dein.`);
+    } else {
+      const contact = String(form.get("contact") ?? "").replace(/[^\d+ ]/g, "").trim().slice(0, 20);
+      const admins = await db.select({ id: s.users.id }).from(s.users).where(eq(s.users.role, "admin"));
+      for (const a of admins) await notify(a.id, { type: "admin_password_reset", title: `${user.name} forgot their password`, body: contact ? `${email} · WhatsApp ${contact}` : email, href: `/admin/users?q=${encodeURIComponent(email)}` });
+    }
+  }
+  return { ok: true, message: byEmail ? "Agar yeh email Ronaq par hai to reset link bhej diya gaya hai. Apna inbox dekhein." : "Aap ki request mil gayi. Agar yeh email Ronaq par hai to team aap ko reset link bhej degi." };
+}
+
+export async function resetPassword(_: FormState, form: FormData): Promise<FormState> {
+  if (!(await rateLimit("reset", 10, 15 * 60 * 1000))) return { error: TOO_MANY };
+  const password = String(form.get("password") ?? "");
+  if (password.length < 8) return { error: "Kam az kam 8 characters ka password rakhein." };
+  const t = await findResetToken(String(form.get("token") ?? ""));
+  if (!t) return { error: "Yeh link purana ho gaya hai. Naya link maangein." };
+  await db.update(s.users).set({ passwordHash: await hashPassword(password) }).where(eq(s.users.id, t.userId));
+  await clearResetTokens(t.userId);
+  await track("password_reset_completed", { userId: t.userId });
+  redirect(`/login?reason=${encodeURIComponent("Password badal gaya. Ab naye password se sign in karein.")}`);
 }
 
 export async function verifyEmail(token: string): Promise<boolean> {

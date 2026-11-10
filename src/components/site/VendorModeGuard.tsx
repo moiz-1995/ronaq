@@ -30,14 +30,14 @@ export function VendorModeGuard({ isSeller, vendorMode }: { isSeller: boolean; v
   return (
     <ConfirmDialog
       open={!!target}
-      title="Switch to customer?"
-      confirmLabel="Yes, switch to customer"
-      cancelLabel="Stay as vendor"
+      title="Khareedar view par jana hai?"
+      confirmLabel="Haan, switch karein"
+      cancelLabel="Dukaandaar hi rehna hai"
       busy={busy}
       onClose={() => setTarget(null)}
       onConfirm={() => target && start(async () => { await switchMode("customer", target.href); setTarget(null); })}
     >
-      You&apos;re using Ronaq as a vendor. To open {target?.name ?? "this page"}, we&apos;ll switch you to your customer view. You can switch back any time from your profile menu.
+      Aap abhi dukaandaar (vendor) view mein hain. {target?.name ?? "Yeh page"} kholne ke liye khareedar (customer) view par jana hoga. Wapas aana ho to profile menu se switch kar lein.
     </ConfirmDialog>
   );
 }

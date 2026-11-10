@@ -3,11 +3,13 @@ import { eq } from "drizzle-orm";
 import { db, schema as s } from "@/db";
 
 /** Load a conversation if, and only if, the user is one of its two parties. */
-export async function loadThreadFor(inquiryId: string, userId: string) {
+/** On a vendor's own test query they are both parties, so `as` says which side they are viewing. */
+export async function loadThreadFor(inquiryId: string, userId: string, as?: "consumer" | "vendor") {
   const inq = await db.query.inquiries.findFirst({ where: eq(s.inquiries.id, inquiryId) });
   if (!inq) return null;
   const vendor = await db.query.vendors.findFirst({ where: eq(s.vendors.id, inq.vendorId) });
-  const role = inq.consumerId === userId ? "consumer" : vendor?.ownerId === userId ? "vendor" : null;
+  const isConsumer = inq.consumerId === userId, isVendor = vendor?.ownerId === userId;
+  const role = isConsumer && isVendor ? (as ?? "vendor") : isConsumer ? "consumer" : isVendor ? "vendor" : null;
   if (!role || !vendor) return null;
   return { inq, vendor, role } as const;
 }

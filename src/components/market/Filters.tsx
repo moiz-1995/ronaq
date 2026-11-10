@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/Select";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
@@ -80,27 +81,27 @@ export function Filters({ cities, areas, categories, attributes, fixedCategory }
           {!fixedCategory && (
             <div className="field">
               <label className="label" htmlFor="f-cat">Category</label>
-              <select id="f-cat" name="category" className="input" defaultValue={sp.get("category") ?? ""}>
+              <Select id="f-cat" name="category" className="input" defaultValue={sp.get("category") ?? ""}>
                 <option value="">All categories</option>
                 {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+              </Select>
             </div>
           )}
 
           <div className="field">
             <label className="label" htmlFor="f-city">City</label>
-            <select id="f-city" name="city" className="input" value={city} onChange={(e) => setCity(e.target.value)}>
+            <Select id="f-city" name="city" className="input" value={city} onChange={(e) => setCity(e.target.value)}>
               <option value="">Any city</option>
               {cities.map((c) => <option key={c.id} value={c.id} disabled={!c.active}>{c.name}{c.active ? "" : " (coming soon)"}</option>)}
-            </select>
+            </Select>
           </div>
           {city && (
             <div className="field">
               <label className="label" htmlFor="f-area">Area or sector</label>
-              <select id="f-area" name="area" className="input" defaultValue={sp.get("area") ?? ""}>
+              <Select id="f-area" name="area" className="input" defaultValue={sp.get("area") ?? ""}>
                 <option value="">Anywhere in the city</option>
                 {areas.filter((a) => a.cityId === city).map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-              </select>
+              </Select>
               <p className="hint">Shows vendors who serve this area.</p>
             </div>
           )}
@@ -114,10 +115,10 @@ export function Filters({ cities, areas, categories, attributes, fixedCategory }
 
           <div className="field">
             <label className="label" htmlFor="f-mode">How they work</label>
-            <select id="f-mode" name="mode" className="input" defaultValue={sp.get("mode") ?? ""}>
+            <Select id="f-mode" name="mode" className="input" defaultValue={sp.get("mode") ?? ""}>
               <option value="">Any</option>
               {SERVICE_MODES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
-            </select>
+            </Select>
           </div>
 
           <div className="field">
@@ -157,7 +158,7 @@ export function SortSelect() {
   return (
     <label className="flex items-center gap-2 text-sm font-bold">
       Sort
-      <select
+      <Select
         className="input !min-h-10 !w-auto !py-1.5"
         value={sp.get("sort") ?? "relevance"}
         onChange={(e) => {
@@ -172,7 +173,7 @@ export function SortSelect() {
         <option value="price">Lowest listed price</option>
         <option value="newest">Newest</option>
         {sp.get("area") && <option value="distance">Nearest</option>}
-      </select>
+      </Select>
     </label>
   );
 }

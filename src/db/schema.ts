@@ -341,6 +341,7 @@ export const inquiries = sqliteTable(
     }>("shared").default({}),
     status: text("status", { enum: ["sent", "delivered", "responded", "closed"] }).notNull().default("sent"),
     source: text("source").notNull().default("profile"),
+    isTest: integer("is_test", { mode: "boolean" }).notNull().default(false),
     consumerUnread: integer("consumer_unread").notNull().default(0),
     vendorUnread: integer("vendor_unread").notNull().default(1),
     lastMessageAt: integer("last_message_at", { mode: "timestamp_ms" }).notNull(),

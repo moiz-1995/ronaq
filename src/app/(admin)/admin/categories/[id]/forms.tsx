@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/Select";
 import { useActionState, useState, useTransition } from "react";
 import { Trash2, Pencil, Plus } from "lucide-react";
 import { deleteAttribute, saveAttribute, saveCategory } from "@/app/actions/admin";
@@ -83,9 +84,9 @@ function AttrForm({ categoryId, a, onDone }: { categoryId: string; a?: Attr; onD
       <div className="field"><label className="label text-xs" htmlFor="a-label">Label</label><input id="a-label" name="label" className="input" defaultValue={a?.label} required /></div>
       <div className="field"><label className="label text-xs" htmlFor="a-key">Key</label><input id="a-key" name="key" className="input font-mono" defaultValue={a?.key} placeholder="auto from label" /></div>
       <div className="field"><label className="label text-xs" htmlFor="a-type">Type</label>
-        <select id="a-type" name="type" className="input" value={type} onChange={(e) => setType(e.target.value)}>
+        <Select id="a-type" name="type" className="input" value={type} onChange={(e) => setType(e.target.value)}>
           <option value="select">Single choice</option><option value="multiselect">Multiple choice</option><option value="boolean">Yes / no</option><option value="number">Number</option><option value="text">Text</option>
-        </select>
+        </Select>
       </div>
       <div className="field"><label className="label text-xs" htmlFor="a-unit">Unit (optional)</label><input id="a-unit" name="unit" className="input" defaultValue={a?.unit ?? ""} placeholder="guests, hours…" /></div>
       {(type === "select" || type === "multiselect") && <div className="field sm:col-span-2"><label className="label text-xs" htmlFor="a-opt">Options (one per line)</label><textarea id="a-opt" name="options" className="input" defaultValue={a?.options.join("\n")} /></div>}

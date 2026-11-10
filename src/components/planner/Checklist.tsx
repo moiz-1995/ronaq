@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/Select";
 import Link from "next/link";
 import { useActionState, useState, useTransition } from "react";
 import { ChevronDown, ChevronUp, Trash2, ArrowUp, ArrowDown, Search, MessageCircle, Check, X, Plus } from "lucide-react";
@@ -68,10 +69,10 @@ function Row({ it, linked, quotes, cat, shortlist, cityId, first, last }: { it: 
           </p>
         </button>
         <label className="sr-only" htmlFor={`st-${it.id}`}>Status for {it.label}</label>
-        <select id={`st-${it.id}`} value={it.status} disabled={pending} onChange={(e) => start(() => setItemStatus(it.id, e.target.value))}
+        <Select id={`st-${it.id}`} value={it.status} disabled={pending} onChange={(e) => start(() => setItemStatus(it.id, e.target.value))}
           className={`rounded-lg border-2 border-ink px-2 py-1.5 font-display text-[11px] ${STATUS_COLORS[it.status]}`}>
           {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k} className="bg-white text-ink">{v.toUpperCase()}</option>)}
-        </select>
+        </Select>
         <button onClick={() => setOpen((o) => !o)} aria-label={open ? "Collapse" : "Expand"} className="rounded-lg p-1.5 hover:bg-sand">{open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}</button>
       </div>
       {open && (
@@ -97,11 +98,11 @@ function Row({ it, linked, quotes, cat, shortlist, cityId, first, last }: { it: 
             </ul>
             <div className="flex flex-wrap gap-2">
               {shortlist.filter((v) => !linked.some((l) => l.id === v.id)).length > 0 && (
-                <select className="input !min-h-10 !w-auto !py-1.5 text-sm" defaultValue="" aria-label="Link a vendor from your shortlist"
+                <Select className="input !min-h-10 !w-auto !py-1.5 text-sm" defaultValue="" aria-label="Link a vendor from your shortlist"
                   onChange={(e) => { const v = e.target.value; if (v) start(() => linkVendor(it.id, v)); e.target.value = ""; }}>
                   <option value="">+ Link from shortlist…</option>
                   {shortlist.filter((v) => !linked.some((l) => l.id === v.id)).map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
-                </select>
+                </Select>
               )}
               {it.categoryId && <Link href={`/marketplace?category=${it.categoryId}${cityId ? `&city=${cityId}` : ""}`} className="btn btn-sm btn-blue"><Search size={14} /> Find vendors</Link>}
             </div>
@@ -175,12 +176,12 @@ function QuoteForm({ itemId, vendors }: { itemId: string; vendors: V[] }) {
       <div className="field">
         <label className="label text-xs" htmlFor={`qv-${itemId}`}>Vendor</label>
         {vendors.length ? (
-          <select id={`qv-${itemId}`} name="vendorId" className="input"><option value="">Someone else</option>{vendors.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}</select>
+          <Select id={`qv-${itemId}`} name="vendorId" className="input"><option value="">Someone else</option>{vendors.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}</Select>
         ) : <input id={`qv-${itemId}`} name="vendorName" className="input" placeholder="Vendor name" />}
       </div>
       <div className="field"><label className="label text-xs" htmlFor={`qa-${itemId}`}>Amount (PKR)</label><input id={`qa-${itemId}`} name="amount" inputMode="numeric" className="input" required /></div>
       <div className="field"><label className="label text-xs" htmlFor={`qu-${itemId}`}>Unit</label>
-        <select id={`qu-${itemId}`} name="unit" className="input"><option value="total">Total</option><option value="per person">Per person</option><option value="per item">Per item</option><option value="per day">Per day</option></select>
+        <Select id={`qu-${itemId}`} name="unit" className="input"><option value="total">Total</option><option value="per person">Per person</option><option value="per item">Per item</option><option value="per day">Per day</option></Select>
       </div>
       <div className="field"><label className="label text-xs" htmlFor={`qd-${itemId}`}>Quote date</label><input id={`qd-${itemId}`} name="quoteDate" type="date" className="input" /></div>
       <div className="field"><label className="label text-xs" htmlFor={`qvu-${itemId}`}>Valid until</label><input id={`qvu-${itemId}`} name="validUntil" type="date" className="input" /></div>
@@ -198,7 +199,7 @@ function AddItem({ eventId, cats }: { eventId: string; cats: Cat[] }) {
     <form action={action} className="card grid gap-3 border-dashed bg-sand/50 p-4 sm:grid-cols-[1fr_1fr_160px_auto] sm:items-end">
       <input type="hidden" name="eventId" value={eventId} />
       <div className="field"><label className="label text-xs" htmlFor="ai-cat">Service</label>
-        <select id="ai-cat" name="categoryId" className="input" defaultValue=""><option value="">Custom task (no category)</option>{cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+        <Select id="ai-cat" name="categoryId" className="input" defaultValue=""><option value="">Custom task (no category)</option>{cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
       </div>
       <div className="field"><label className="label text-xs" htmlFor="ai-label">Name</label><input id="ai-label" name="label" className="input" placeholder="e.g. Book shuttle for guests" /></div>
       <div className="field"><label className="label text-xs" htmlFor="ai-b">Budget (PKR)</label><input id="ai-b" name="budget" inputMode="numeric" className="input" /></div>

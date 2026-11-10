@@ -1,5 +1,6 @@
 "use client";
-import { useActionState, useEffect, useState } from "react";
+import { Select } from "@/components/ui/Select";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { startSelling } from "@/app/actions/seller";
 import { FormMessage, Submit } from "@/components/ui/form";
 import { CraftArt } from "@/components/art/CraftArt";
@@ -17,7 +18,7 @@ type Props = {
   heard: string[];
 };
 
-const STEPS = ["What you offer", "Your business", "Where you work", "Previous work", "Contact"];
+const STEPS = ["Aap ka kaam", "Aap ki dukaan", "Kahan kaam", "Pichla kaam", "Rabta"];
 const LAST_STEP = STEPS.length - 1;
 const MAX_PHOTOS = 6;
 const DRAFT_KEY = "ronaq-seller-draft";
@@ -26,6 +27,13 @@ const DRAFT_KEY = "ronaq-seller-draft";
 export function SellerWizard({ user, cities, areas, cats, businessTypes, modes, heard }: Props) {
   const [state, action] = useActionState(startSelling, undefined);
   const [step, setStep] = useState(0);
+  const card = useRef<HTMLDivElement>(null);
+  const firstStep = useRef(true);
+  useEffect(() => {
+    if (firstStep.current) { firstStep.current = false; return; }
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) card.current?.animate([{ opacity: 0, transform: "translateX(22px)" }, { opacity: 1, transform: "none" }], { duration: 280, easing: "cubic-bezier(.2,.8,.2,1)" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
   const [d, setD] = useState({
     categories: [] as string[], name: "", ownerName: user.name, description: "", businessType: "", experienceYears: "",
     cityId: cities[0]?.id ?? "", areaId: "", servesWholeCity: false, serviceAreaIds: [] as string[], serviceRadiusKm: "",
@@ -60,11 +68,11 @@ export function SellerWizard({ user, cities, areas, cats, businessTypes, modes, 
       {d.servesWholeCity && <input type="hidden" name="servesWholeCity" value="on" />}
       <ReferenceFields value={d.references} />
 
-      <div className="card card-shadow bg-white p-5 sm:p-7">
+      <div ref={card} className="card card-shadow bg-white p-5 sm:p-7">
         {step === 0 && (
           <fieldset className="grid gap-3">
-            <legend className="font-display text-xl">What do you offer?</legend>
-            <p className="-mt-1 text-sm text-mute">Choose all that apply. Each one gets its own prices, details and photos.</p>
+            <legend className="font-display text-xl">Aap kya kaam karte hain?</legend>
+            <p className="-mt-1 text-sm text-mute">Jitne bhi kaam karte hain sab chun lein (choose all that apply). Har ek ka apna rate aur tafseel hogi.</p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {cats.map((c, i) => {
                 const on = d.categories.includes(c.slug);
@@ -81,38 +89,38 @@ export function SellerWizard({ user, cities, areas, cats, businessTypes, modes, 
         )}
         {step === 1 && (
           <div className="grid gap-4 sm:grid-cols-2">
-            <h2 className="font-display text-xl sm:col-span-2">About your business</h2>
-            <div className="field sm:col-span-2"><label className="label" htmlFor="w-name">Business name</label><input id="w-name" className="input" value={d.name} onChange={(e) => set("name", e.target.value)} placeholder="e.g. Hina's Henna Studio" /></div>
-            <div className="field"><label className="label" htmlFor="w-owner">Owner / contact person</label><input id="w-owner" className="input" value={d.ownerName} onChange={(e) => set("ownerName", e.target.value)} /></div>
-            <div className="field"><label className="label" htmlFor="w-type">Business type</label>
-              <select id="w-type" className="input" value={d.businessType} onChange={(e) => set("businessType", e.target.value)}><option value="">Choose…</option>{businessTypes.map((b) => <option key={b}>{b}</option>)}</select>
+            <h2 className="font-display text-xl sm:col-span-2">Apni dukaan ke baare mein</h2>
+            <div className="field sm:col-span-2"><label className="label" htmlFor="w-name">Dukaan ka naam (Business name)</label><input id="w-name" className="input" value={d.name} onChange={(e) => set("name", e.target.value)} placeholder="Maslan Hina's Henna Studio" /></div>
+            <div className="field"><label className="label" htmlFor="w-owner">Maalik ka naam (Owner)</label><input id="w-owner" className="input" value={d.ownerName} onChange={(e) => set("ownerName", e.target.value)} /></div>
+            <div className="field"><label className="label" htmlFor="w-type">Karobar ki qisam (Business type)</label>
+              <Select id="w-type" className="input" value={d.businessType} onChange={(e) => set("businessType", e.target.value)}><option value="">Chunein…</option>{businessTypes.map((b) => <option key={b}>{b}</option>)}</Select>
             </div>
-            <div className="field"><label className="label" htmlFor="w-exp">Years of experience</label><input id="w-exp" className="input" inputMode="numeric" value={d.experienceYears} onChange={(e) => set("experienceYears", e.target.value.replace(/\D/g, ""))} /></div>
-            <div className="field sm:col-span-2"><label className="label" htmlFor="w-desc">Describe your work</label><textarea id="w-desc" className="input" value={d.description} onChange={(e) => set("description", e.target.value)} maxLength={2000} placeholder="What makes your work special? What do families love about you?" /><p className="hint">Optional for now. A couple of sentences helps families choose you.</p></div>
+            <div className="field"><label className="label" htmlFor="w-exp">Kitne saal ka tajurba (Experience)</label><input id="w-exp" className="input" inputMode="numeric" value={d.experienceYears} onChange={(e) => set("experienceYears", e.target.value.replace(/\D/g, ""))} /></div>
+            <div className="field sm:col-span-2"><label className="label" htmlFor="w-desc">Apne kaam ke baare mein batayein</label><textarea id="w-desc" className="input" value={d.description} onChange={(e) => set("description", e.target.value)} maxLength={2000} placeholder="Aap ka kaam khaas kyun hai? Log aap ko kyun pasand karte hain?" /><p className="hint">Abhi zaroori nahi. Do teen lines se khareedar ko faisla karna aasan hota hai.</p></div>
           </div>
         )}
         {step === 2 && (
           <div className="grid gap-5">
-            <h2 className="font-display text-xl">Where and how you work</h2>
+            <h2 className="font-display text-xl">Kahan aur kaise kaam karte hain</h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="field"><label className="label" htmlFor="w-city">City</label>
-                <select id="w-city" className="input" value={d.cityId} onChange={(e) => setD((x) => ({ ...x, cityId: e.target.value, areaId: "", serviceAreaIds: [] }))}>{cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+              <div className="field"><label className="label" htmlFor="w-city">Sheher (City)</label>
+                <Select id="w-city" className="input" value={d.cityId} onChange={(e) => setD((x) => ({ ...x, cityId: e.target.value, areaId: "", serviceAreaIds: [] }))}>{cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
               </div>
-              <div className="field"><label className="label" htmlFor="w-area">Your base area</label>
-                <select id="w-area" className="input" value={d.areaId} onChange={(e) => set("areaId", e.target.value)}><option value="">Choose…</option>{cityAreas.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select>
+              <div className="field"><label className="label" htmlFor="w-area">Aap ka ilaqa (Base area)</label>
+                <Select id="w-area" className="input" value={d.areaId} onChange={(e) => set("areaId", e.target.value)}><option value="">Chunein…</option>{cityAreas.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</Select>
               </div>
             </div>
             <fieldset className="grid gap-2">
-              <legend className="label mb-1">How do you deliver your service?</legend>
+              <legend className="label mb-1">Service kaise dete hain?</legend>
               <div className="flex flex-wrap gap-2">{modes.map((m) => <button type="button" key={m.value} className={`check ${d.modes.includes(m.value) ? "!bg-ink !text-sand" : ""}`} aria-pressed={d.modes.includes(m.value)} onClick={() => toggle("modes", m.value)}>{m.label}</button>)}</div>
             </fieldset>
             <fieldset className="grid gap-2">
-              <legend className="label mb-1">Which areas do you serve?</legend>
-              <label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={d.servesWholeCity} onChange={(e) => set("servesWholeCity", e.target.checked)} className="h-4 w-4 accent-red" /> The whole city</label>
+              <legend className="label mb-1">Kin ilaqon mein jaate hain?</legend>
+              <label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={d.servesWholeCity} onChange={(e) => set("servesWholeCity", e.target.checked)} className="h-4 w-4 accent-red" /> Poora sheher</label>
               {!d.servesWholeCity && (
                 <>
                   <div className="flex flex-wrap gap-2">{cityAreas.map((a) => <button type="button" key={a.id} className={`check !text-xs ${d.serviceAreaIds.includes(a.id) ? "!bg-ink !text-sand" : ""}`} aria-pressed={d.serviceAreaIds.includes(a.id)} onClick={() => toggle("serviceAreaIds", a.id)}>{a.name}</button>)}</div>
-                  <div className="field max-w-xs"><label className="label text-xs" htmlFor="w-rad">…or within this many km of your base</label><input id="w-rad" className="input" inputMode="numeric" value={d.serviceRadiusKm} onChange={(e) => set("serviceRadiusKm", e.target.value.replace(/\D/g, ""))} /></div>
+                  <div className="field max-w-xs"><label className="label text-xs" htmlFor="w-rad">…ya apne ilaqe se kitne km tak</label><input id="w-rad" className="input" inputMode="numeric" value={d.serviceRadiusKm} onChange={(e) => set("serviceRadiusKm", e.target.value.replace(/\D/g, ""))} /></div>
                 </>
               )}
             </fieldset>
@@ -120,35 +128,35 @@ export function SellerWizard({ user, cities, areas, cats, businessTypes, modes, 
         )}
         {step === 3 && (
           <div className="grid gap-3">
-            <h2 className="font-display text-xl">Previous work &amp; references</h2>
-            <p className="-mt-1 text-sm text-mute">Optional. Share events you&apos;ve done so families can trust your work. Just starting out? Press Next.</p>
+            <h2 className="font-display text-xl">Pichla kaam aur references</h2>
+            <p className="-mt-1 text-sm text-mute">Zaroori nahi. Jo events kiye hain woh batayein taake khareedar bharosa kar sakein. Naye hain? Bas Aagay dabayein.</p>
             <ReferencesEditor value={d.references} onChange={(references) => set("references", references)} />
           </div>
         )}
         {/* stays mounted so chosen photos survive moving between steps */}
         <div className={step === 3 ? "mt-5 grid gap-2" : "hidden"}>
-          <p className="label">Photos of your work (optional)</p>
+          <p className="label">Apne kaam ki photos (optional)</p>
           <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-[3px] border-dashed border-ink/40 p-5 font-bold hover:bg-sand">
-            <ImagePlus size={18} /> {previews.length ? `${previews.length} photo${previews.length > 1 ? "s" : ""} chosen. Change` : "Choose photos"}
+            <ImagePlus size={18} /> {previews.length ? `${previews.length} photo chuni gayi. Badlein` : "Photos chunein"}
             <input type="file" name="images" multiple accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => {
               const chosen = [...(e.target.files ?? [])];
-              if (chosen.length > MAX_PHOTOS) { e.target.value = ""; setPreviews([]); setPhotoNote(`Choose up to ${MAX_PHOTOS} for now. You can add more from your dashboard.`); return; }
+              if (chosen.length > MAX_PHOTOS) { e.target.value = ""; setPreviews([]); setPhotoNote(`Abhi ${MAX_PHOTOS} tak chunein. Baqi dashboard se add kar sakte hain.`); return; }
               setPhotoNote("");
               setPreviews(chosen.map((f) => URL.createObjectURL(f)));
             }} />
           </label>
           {photoNote && <p className="text-sm font-bold text-red">{photoNote}</p>}
           {previews.length > 0 && <div className="flex flex-wrap gap-2">{previews.map((p) => <img key={p} src={p} alt="Chosen work" className="h-16 w-16 rounded-xl border-2 border-ink object-cover" />)}</div>}
-          <p className="hint">No photos yet? No problem. Your card will show an illustration of your craft.</p>
+          <p className="hint">Abhi photos nahi? Koi baat nahi. Card par aap ke kaam ki tasveer nazar aayegi.</p>
         </div>
         {step === 4 && (
           <div className="grid gap-4 sm:grid-cols-2">
-            <h2 className="font-display text-xl sm:col-span-2">Contact details</h2>
-            <p className="-mt-2 text-sm text-mute sm:col-span-2">For Ronaq to reach you. Families only see your number if you turn that on later in your profile.</p>
+            <h2 className="font-display text-xl sm:col-span-2">Rabta (Contact details)</h2>
+            <p className="-mt-2 text-sm text-mute sm:col-span-2">Ronaq team aap se rabta kar sake. Khareedar ko number tab hi dikhega jab aap khud profile mein on karenge.</p>
             <div className="field"><label className="label" htmlFor="w-phone">Phone</label><input id="w-phone" className="input" inputMode="tel" value={d.phone} onChange={(e) => set("phone", e.target.value)} placeholder="0300 1234567" /></div>
-            <div className="field"><label className="label" htmlFor="w-wa">WhatsApp (if different)</label><input id="w-wa" className="input" inputMode="tel" value={d.whatsapp} onChange={(e) => set("whatsapp", e.target.value)} /></div>
-            <div className="field sm:col-span-2"><label className="label" htmlFor="w-ref">How did you hear about Ronaq? (optional)</label>
-              <select id="w-ref" className="input" value={d.referralSource} onChange={(e) => set("referralSource", e.target.value)}><option value="">Choose…</option>{heard.map((h) => <option key={h}>{h}</option>)}</select>
+            <div className="field"><label className="label" htmlFor="w-wa">WhatsApp (agar alag hai)</label><input id="w-wa" className="input" inputMode="tel" value={d.whatsapp} onChange={(e) => set("whatsapp", e.target.value)} /></div>
+            <div className="field sm:col-span-2"><label className="label" htmlFor="w-ref">Ronaq ke baare mein kahan se suna? (optional)</label>
+              <Select id="w-ref" className="input" value={d.referralSource} onChange={(e) => set("referralSource", e.target.value)}><option value="">Chunein…</option>{heard.map((h) => <option key={h}>{h}</option>)}</Select>
             </div>
           </div>
         )}
@@ -156,13 +164,13 @@ export function SellerWizard({ user, cities, areas, cats, businessTypes, modes, 
 
       <FormMessage state={state} />
       <div className="flex flex-wrap items-center gap-3">
-        {step > 0 && <button type="button" className="btn" onClick={() => setStep(step - 1)}>Back</button>}
+        {step > 0 && <button type="button" className="btn" onClick={() => setStep(step - 1)}>Wapas</button>}
         {step < LAST_STEP ? (
-          <button type="button" className="btn btn-red" disabled={!canNext} onClick={() => setStep(step + 1)}>Next</button>
+          <button type="button" className="btn btn-red" disabled={!canNext} onClick={() => setStep(step + 1)}>Aagay</button>
         ) : (
-          <Submit pendingText="Publishing your profile…">Publish my profile</Submit>
+          <Submit pendingText="Publish ho raha hai…">Dukaan publish karein</Submit>
         )}
-        {!canNext && step < LAST_STEP && <p className="text-sm text-mute">{["Choose at least one category.", "Add your business name.", "Pick your city and at least one way you work."][step]}</p>}
+        {!canNext && step < LAST_STEP && <p className="text-sm text-mute">{["Kam az kam ek kaam chunein.", "Dukaan ka naam likhein.", "Sheher aur service ka tareeqa chunein."][step]}</p>}
       </div>
     </form>
   );

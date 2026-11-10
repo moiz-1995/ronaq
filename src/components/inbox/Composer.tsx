@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { SendHorizonal } from "lucide-react";
 import { sendMessage, setInquiryClosed } from "@/app/actions/inquiries";
 
-export function Composer({ inquiryId }: { inquiryId: string }) {
+export function Composer({ inquiryId, role }: { inquiryId: string; role: "consumer" | "vendor" }) {
   const [state, action, pending] = useActionState(sendMessage, undefined);
   const ref = useRef<HTMLFormElement>(null);
   const router = useRouter();
@@ -19,6 +19,7 @@ export function Composer({ inquiryId }: { inquiryId: string }) {
   return (
     <form ref={ref} action={action} className="grid gap-2">
       <input type="hidden" name="inquiryId" value={inquiryId} />
+      <input type="hidden" name="as" value={role} />
       <div className="flex items-end gap-2">
         <label htmlFor="body" className="sr-only">Message</label>
         <textarea
@@ -32,10 +33,10 @@ export function Composer({ inquiryId }: { inquiryId: string }) {
   );
 }
 
-export function CloseToggle({ inquiryId, closed }: { inquiryId: string; closed: boolean }) {
+export function CloseToggle({ inquiryId, closed, role }: { inquiryId: string; closed: boolean; role: "consumer" | "vendor" }) {
   const [pending, start] = useTransition();
   return (
-    <button type="button" className="btn btn-sm" disabled={pending} onClick={() => start(() => setInquiryClosed(inquiryId, !closed))}
+    <button type="button" className="btn btn-sm" disabled={pending} onClick={() => start(() => setInquiryClosed(inquiryId, !closed, role))}
       title={closed ? "Move this conversation back to active so you can keep messaging" : "Move this conversation out of your active list. It doesn't cancel anything with the vendor, and you can reopen it any time."}>
       {closed ? "Reopen conversation" : "Mark as done"}
     </button>

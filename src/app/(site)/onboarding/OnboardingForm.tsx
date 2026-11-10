@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/Select";
 import { useActionState, useState, useTransition } from "react";
 import { saveOnboarding, skipOnboarding } from "@/app/actions/planner";
 import { FormMessage, Submit } from "@/components/ui/form";
@@ -25,10 +26,10 @@ export function OnboardingForm({ next, user, cities, cats, heard }: {
             <label key={c.id} className="check"><input type="radio" name="cityId" value={c.id} defaultChecked={user.cityId ? user.cityId === c.id : c.name === "Rawalpindi"} className="sr-only" /> {c.name}</label>
           ))}
         </div>
-        <select name="cityId" className="input mt-1" defaultValue="" aria-label="Other city" onChange={(e) => { if (e.target.value) document.querySelectorAll<HTMLInputElement>('input[name="cityId"]').forEach((r) => (r.checked = false)); }}>
+        <Select name="cityId" className="input mt-1" defaultValue="" aria-label="Other city" onChange={(e) => { if (e.target.value) document.querySelectorAll<HTMLInputElement>('input[name="cityId"]').forEach((r) => (r.checked = false)); }}>
           <option value="">Somewhere else…</option>
           {cities.filter((c) => !c.active).map((c) => <option key={c.id} value={c.id}>{c.name} (coming soon)</option>)}
-        </select>
+        </Select>
       </fieldset>
       <fieldset className="grid gap-2">
         <legend className="label mb-1">What kind of services interest you? <span className="font-normal text-mute">(optional)</span></legend>
@@ -45,10 +46,10 @@ export function OnboardingForm({ next, user, cities, cats, heard }: {
       </fieldset>
       <fieldset className="grid gap-2">
         <legend className="label mb-1">Where did you hear about Ronaq? <span className="font-normal text-mute">(optional)</span></legend>
-        <select name="heardFrom" className="input" value={heardFrom} onChange={(e) => setHeardFrom(e.target.value)} aria-label="Where did you hear about Ronaq?">
+        <Select name="heardFrom" className="input" value={heardFrom} onChange={(e) => setHeardFrom(e.target.value)} aria-label="Where did you hear about Ronaq?">
           <option value="">Choose…</option>
           {heard.map((h) => <option key={h}>{h}</option>)}
-        </select>
+        </Select>
         {heardFrom === "Other" && <input name="heardOther" className="input" placeholder="Tell us where" aria-label="Where else" />}
       </fieldset>
       <FormMessage state={state} />

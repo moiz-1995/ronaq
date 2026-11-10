@@ -1,3 +1,4 @@
+import { Select } from "@/components/ui/Select";
 import { and, eq, gte, inArray, sql } from "drizzle-orm";
 import { db, schema as s } from "@/db";
 import { requireStaff } from "@/lib/auth";
@@ -33,7 +34,7 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
   const approved = vendors.filter((v) => v.status === "approved");
   const stale = approved.filter((v) => v.updated < Date.now() - 90 * 86400000).length;
 
-  const inqConds = [gte(s.inquiries.createdAt, since)];
+  const inqConds = [gte(s.inquiries.createdAt, since), eq(s.inquiries.isTest, false)];
   if (catF) inqConds.push(eq(s.inquiries.categoryId, catF));
   if (cityF) inqConds.push(inArray(s.inquiries.vendorId, db.select({ id: s.vendors.id }).from(s.vendors).where(eq(s.vendors.cityId, cityF))));
   const inqs = await db.select().from(s.inquiries).where(and(...inqConds));
@@ -52,9 +53,9 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
     <>
       <AdminHeader title="Overview" sub={`Last ${days} days${cityF ? ` · ${cities.find((c) => c.id === cityF)?.name}` : ""}${catF ? ` · ${cats.find((c) => c.id === catF)?.name}` : ""}`}>
         <form className="flex flex-wrap gap-2" aria-label="Filters">
-          <select name="days" defaultValue={days} className="input !min-h-10 !w-auto !py-1.5 text-sm" aria-label="Date range">{[7, 30, 90, 365].map((d) => <option key={d} value={d}>Last {d} days</option>)}</select>
-          <select name="city" defaultValue={cityF ?? ""} className="input !min-h-10 !w-auto !py-1.5 text-sm" aria-label="City"><option value="">All cities</option>{cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
-          <select name="category" defaultValue={catF ?? ""} className="input !min-h-10 !w-auto !py-1.5 text-sm" aria-label="Category"><option value="">All categories</option>{cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+          <Select name="days" defaultValue={days} className="input !min-h-10 !w-auto !py-1.5 text-sm" aria-label="Date range">{[7, 30, 90, 365].map((d) => <option key={d} value={d}>Last {d} days</option>)}</Select>
+          <Select name="city" defaultValue={cityF ?? ""} className="input !min-h-10 !w-auto !py-1.5 text-sm" aria-label="City"><option value="">All cities</option>{cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
+          <Select name="category" defaultValue={catF ?? ""} className="input !min-h-10 !w-auto !py-1.5 text-sm" aria-label="Category"><option value="">All categories</option>{cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
           <button className="btn btn-sm btn-ink">Apply</button>
         </form>
       </AdminHeader>

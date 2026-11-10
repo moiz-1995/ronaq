@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/Select";
 import { useActionState, useState } from "react";
 import { Star } from "lucide-react";
 import { createReview } from "@/app/actions/reviews";
@@ -26,10 +27,10 @@ export function ReviewForm({ vendorId, needsEvidence, premoderated }: { vendorId
       </fieldset>
       <div className="field">
         <label className="label" htmlFor="occasion">Occasion</label>
-        <select id="occasion" name="occasion" className="input" defaultValue="">
+        <Select id="occasion" name="occasion" className="input" defaultValue="">
           <option value="">Choose…</option>
           {OCCASIONS.map((o) => <option key={o}>{o}</option>)}
-        </select>
+        </Select>
       </div>
       <div className="field">
         <label className="label" htmlFor="text">Your review</label>

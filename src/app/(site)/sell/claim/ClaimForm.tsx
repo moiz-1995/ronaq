@@ -12,7 +12,7 @@ export function ClaimForm() {
         <input id="code" name="code" className="input font-mono uppercase tracking-widest" placeholder="RNQ-XXXXXX" autoComplete="off" required />
       </div>
       <FormMessage state={state} />
-      <Submit>Claim profile</Submit>
+      <Submit>Profile claim karein</Submit>
     </form>
   );
 }

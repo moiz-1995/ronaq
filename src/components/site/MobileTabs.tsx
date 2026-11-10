@@ -7,7 +7,7 @@ import { Home, Search, CalendarHeart, Heart, User, Inbox, Tag } from "lucide-rea
 export function MobileTabs({ signedIn, isSeller, vendorMode }: { signedIn: boolean; isSeller: boolean; vendorMode: boolean }) {
   const path = usePathname();
   const tabs = isSeller && (vendorMode || path.startsWith("/seller")) ? [
-    { href: "/seller", label: "Dashboard", icon: Home },
+    { href: "/seller", label: "Dukaan", icon: Home },
     { href: "/seller/inquiries", label: "Queries", icon: Inbox },
     { href: "/seller/services", label: "Services", icon: Tag },
     { href: "/marketplace", label: "Marketplace", icon: Search },
@@ -32,7 +32,7 @@ export function MobileTabs({ signedIn, isSeller, vendorMode }: { signedIn: boole
           return (
             <li key={label}>
               <Link href={href} className={`flex flex-col items-center gap-0.5 py-2 text-[11px] font-bold ${active ? "text-red" : "text-ink"}`} aria-current={active ? "page" : undefined}>
-                <span className={`grid h-8 w-12 place-items-center rounded-full ${active ? "bg-red-soft" : ""}`}><I size={20} strokeWidth={active ? 2.6 : 2} /></span>
+                <span className={`grid h-8 w-12 place-items-center rounded-full ${active ? "tab-pop bg-red-soft" : ""}`}><I size={20} strokeWidth={active ? 2.6 : 2} /></span>
                 {label}
               </Link>
             </li>

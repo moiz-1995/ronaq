@@ -52,6 +52,13 @@ async function tellAdmins(title: string, href: string) {
   for (const a of staff) await notify(a.id, { type: "admin_vendor_pending", title, href });
 }
 
+async function goLive(user: { id: string }, vendor: { id: string; name: string; cityId: string | null; founding: boolean; approvedAt: Date | null }) {
+  await db.update(s.vendors).set({ ...(await publishFields(vendor)), updatedAt: new Date() }).where(eq(s.vendors.id, vendor.id));
+  await audit({ actorId: user.id, action: "vendor.self_published", objectType: "vendor", objectId: vendor.id });
+  await track("vendor_profile_approved", { userId: user.id, cityId: vendor.cityId });
+  await tellAdmins(`${vendor.name} just went live`, `/admin/vendors/${vendor.id}`);
+}
+
 const refresh = (slug?: string) => { revalidatePath("/seller", "layout"); if (slug) revalidatePath(`/v/${slug}`); };
 
 // ---------- onboarding (§9.1, FR-SEL-001/002) ----------
@@ -62,9 +69,9 @@ export async function startSelling(_: unknown, form: FormData): Promise<Result> 
   const name = str(form.get("name"), 80);
   const cityId = str(form.get("cityId"));
   const catSlugs = form.getAll("categories").map(String);
-  if (!name) return { error: "Enter your business name." };
-  if (!cityId) return { error: "Choose your city." };
-  if (!catSlugs.length) return { error: "Choose at least one service category." };
+  if (!name) return { error: "Dukaan ka naam likhein." };
+  if (!cityId) return { error: "Apna sheher chunein." };
+  if (!catSlugs.length) return { error: "Kam az kam ek category chunein." };
   const cats = (await getCategories()).filter((c) => catSlugs.includes(c.slug));
   let workReferences;
   try {
@@ -108,7 +115,7 @@ export async function startSelling(_: unknown, form: FormData): Promise<Result> 
 export async function saveVendorProfile(_: unknown, form: FormData): Promise<Result> {
   const { user, vendor } = await requireVendor();
   const name = str(form.get("name"), 80);
-  if (!name) return { error: "Your business name can't be empty." };
+  if (!name) return { error: "Dukaan ka naam khali nahi ho sakta." };
   const next: Partial<typeof s.vendors.$inferInsert> = {
     name, ownerName: str(form.get("ownerName"), 80), description: str(form.get("description"), 2000),
     businessType: str(form.get("businessType"), 40), cityId: str(form.get("cityId")), areaId: str(form.get("areaId")),
@@ -151,7 +158,16 @@ export async function saveVendorProfile(_: unknown, form: FormData): Promise<Res
   await db.update(s.vendors).set(next).where(eq(s.vendors.id, vendor.id));
   if (material) await audit({ actorId: user.id, action: "vendor.material_change", objectType: "vendor", objectId: vendor.id, before: pick(vendor), after: pick({ ...vendor, ...next }) });
   refresh(next.slug ?? vendor.slug);
-  return { ok: true, message: material ? "Saved. Our team will take a quick look at the changes. Your profile stays live meanwhile." : "Profile saved." };
+  if (form.get("publish") === "1" && vendor.status === "draft") {
+    const services = await db.select().from(s.vendorServices).where(eq(s.vendorServices.vendorId, vendor.id));
+    const [{ n }] = await db.select({ n: sql<number>`count(*)` }).from(s.portfolioItems).where(and(eq(s.portfolioItems.vendorId, vendor.id), eq(s.portfolioItems.status, "visible")));
+    const updated = { ...vendor, ...next } as typeof vendor;
+    const c = completeness({ ...updated, services, portfolioCount: Number(n) });
+    if (!c.ready) return { error: `Save ho gaya. Publish se pehle yeh bharein: ${c.items.filter((i) => !i.done && !i.optional).map((i) => i.label).join(", ")}.` };
+    await goLive(user, updated);
+    redirect("/seller?welcome=1");
+  }
+  return { ok: true, message: material ? "Save ho gaya. Team jaldi se tabdeeli dekh legi, tab tak aap ki dukaan live rahegi." : vendor.status === "approved" ? "Save ho gaya. Aap ki live dukaan update ho gayi." : "Save ho gaya." };
 }
 
 function pick(v: Record<string, unknown>) {
@@ -173,11 +189,11 @@ export async function saveService(_: unknown, form: FormData): Promise<Result> {
   const svc = await db.query.vendorServices.findFirst({ where: and(eq(s.vendorServices.id, String(form.get("id"))), eq(s.vendorServices.vendorId, vendor.id)) });
   if (!svc) return { error: "Service not found." };
   const title = str(form.get("title"), 100);
-  if (!title) return { error: "Give the service a title." };
+  if (!title) return { error: "Service ka naam likhein." };
   const model = String(form.get("pricingModel")) as PricingModel;
   if (!(model in PRICING_LABELS)) return { error: "Choose how this service is priced." };
   const amount = int(form.get("priceAmount"));
-  if (model !== "quote" && !amount) return { error: "Enter a price, or choose “Custom quote”." };
+  if (model !== "quote" && !amount) return { error: "Rate likhein, ya “Custom quote” chunein." };
   const defs = await getAttributes(svc.categoryId);
   const attrs: Record<string, string | string[] | boolean | number> = {};
   for (const a of defs) {
@@ -193,7 +209,7 @@ export async function saveService(_: unknown, form: FormData): Promise<Result> {
     minOrder: str(form.get("minOrder"), 100), occasions: form.getAll("occasions").map(String), attributes: attrs, active: form.get("active") === "on",
   }).where(eq(s.vendorServices.id, svc.id));
   refresh(vendor.slug);
-  return { ok: true, message: "Service saved." };
+  return { ok: true, message: "Service save ho gayi." };
 }
 
 export async function deleteService(serviceId: string) {
@@ -277,10 +293,9 @@ export async function publishProfile() {
   const c = completeness({ ...vendor, services, portfolioCount: Number(n) });
   if (!c.ready || (vendor.status !== "draft" && vendor.status !== "rejected")) return;
   if (vendor.status === "draft") {
-    await db.update(s.vendors).set({ ...(await publishFields(vendor)), updatedAt: new Date() }).where(eq(s.vendors.id, vendor.id));
-    await audit({ actorId: user.id, action: "vendor.self_published", objectType: "vendor", objectId: vendor.id });
-    await track("vendor_profile_approved", { userId: user.id, cityId: vendor.cityId });
-    await tellAdmins(`${vendor.name} just went live`, `/admin/vendors/${vendor.id}`);
+    await goLive(user, vendor);
+    refresh(vendor.slug);
+    redirect("/seller?welcome=1");
   } else {
     await db.update(s.vendors).set({ status: "pending", statusReason: null, updatedAt: new Date() }).where(eq(s.vendors.id, vendor.id));
     await audit({ actorId: user.id, action: "vendor.submitted", objectType: "vendor", objectId: vendor.id });

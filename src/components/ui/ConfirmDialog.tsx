@@ -17,7 +17,7 @@ export function ConfirmDialog({ open, title, children, confirmLabel, cancelLabel
       ref={ref}
       onCancel={(e) => { e.preventDefault(); onClose(); }}
       onClick={(e) => { if (e.target === ref.current) onClose(); }}
-      className="card card-shadow m-auto w-[min(440px,calc(100vw-32px))] bg-white p-0 text-ink backdrop:bg-ink/55"
+      className="dialog-in card card-shadow m-auto w-[min(440px,calc(100vw-32px))] bg-white p-0 text-ink backdrop:bg-ink/55"
     >
       <div className="grid gap-3 p-6">
         <h2 className="font-display text-xl leading-tight">{title}</h2>

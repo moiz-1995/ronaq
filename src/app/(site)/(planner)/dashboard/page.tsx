@@ -88,7 +88,7 @@ export default async function Dashboard() {
         <div className="patti" />
       </section>
 
-      <div className="wrap mt-8 grid gap-6">
+      <div data-stagger suppressHydrationWarning className="wrap mt-8 grid gap-6">
         {!user.onboardedAt && (
           <Banner icon={Bell} text="Finish your profile so we can show vendors in your city." href="/onboarding" cta="Finish profile" />
         )}

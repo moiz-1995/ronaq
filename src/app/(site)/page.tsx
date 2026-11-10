@@ -1,3 +1,7 @@
+import { Petals } from "@/components/motion/Petals";
+import { CountUp } from "@/components/motion/CountUp";
+import { TypingInput } from "@/components/motion/TypingInput";
+import { Select } from "@/components/ui/Select";
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { ArrowRight, CalendarHeart, ListChecks, Store, ShieldCheck, MessageCircle, BadgePercent } from "lucide-react";
@@ -11,6 +15,8 @@ import { VendorCard } from "@/components/vendor/VendorCard";
 import { FoundingBadge } from "@/components/ui/badges";
 import { Marquee } from "@/components/site/Marquee";
 
+const SEARCH_EXAMPLES = ["Dhol wala…", "Daig chahiye…", "Bridal makeup…", "Mehndi artist…", "Photographer…"];
+
 export default async function Home() {
   const [user, cities, cats, counts] = await Promise.all([getUser(), getActiveCities(), getCategories(), getCategoryCounts()]);
   const top = await db.select({ id: s.vendors.id }).from(s.vendors).where(eq(s.vendors.status, "approved")).orderBy(desc(s.vendors.ratingAvg), desc(s.vendors.ratingCount)).limit(8);
@@ -21,9 +27,10 @@ export default async function Home() {
     <>
       {/* HERO */}
       <section className="dot-bg relative overflow-hidden text-sand">
-        <div className="wrap grid items-center gap-10 py-10 md:py-16 lg:grid-cols-[1.2fr_.9fr]">
-          <div className="min-w-0">
-            <h1 className="flex flex-wrap gap-x-3.5 gap-y-2.5 font-display text-[clamp(2.5rem,7.2vw,5.8rem)] leading-[.98]">
+        <Petals />
+        <div className="wrap relative grid items-center gap-10 py-10 md:py-16 lg:grid-cols-[1.2fr_.9fr]">
+          <div className="rise-row min-w-0">
+            <h1 className="sticker-row flex flex-wrap gap-x-3.5 gap-y-2.5 font-display text-[clamp(2.5rem,7.2vw,5.8rem)] leading-[.98]">
               <span className="inline-block -rotate-2 rounded-[14px] bg-red px-4 pb-2 pt-1 text-sand">Shaadi</span>
               <span className="inline-block rotate-[1.5deg] rounded-[14px] bg-blue px-4 pb-2 pt-1 text-sand">Mehndi</span>
               <span className="inline-block -rotate-1 rounded-[14px] bg-sand px-4 pb-2 pt-1 text-ink">Birthday</span>
@@ -34,17 +41,27 @@ export default async function Home() {
             </p>
             <form action="/marketplace" className="mt-7 flex max-w-2xl flex-wrap gap-2.5 rounded-[20px] border-[3px] border-sand bg-paper p-2.5 text-ink">
               <label htmlFor="hq" className="sr-only">What are you looking for?</label>
-              <input id="hq" name="q" placeholder="Dhol wala, daig, bridal makeup…" className="min-w-0 flex-[1_1_200px] bg-transparent px-3 py-2.5 text-base outline-none" />
+              <TypingInput id="hq" name="q" phrases={SEARCH_EXAMPLES} className="min-w-0 flex-[1_1_200px] bg-transparent px-3 py-2.5 text-base outline-none" />
               <label htmlFor="hc" className="sr-only">City</label>
-              <select id="hc" name="city" className="min-w-0 flex-[0_1_160px] rounded-xl bg-sand px-3 py-2.5 font-medium" defaultValue={cities.find((c) => c.slug === "rawalpindi")?.id}>
+              <Select id="hc" name="city" className="min-w-0 flex-[0_1_160px] rounded-xl bg-sand px-3 py-2.5 font-medium" defaultValue={cities.find((c) => c.slug === "rawalpindi")?.id}>
                 {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+              </Select>
               <button className="btn btn-red !shadow-none" type="submit">Dhoondo</button>
             </form>
+            <div className="mt-5 grid max-w-2xl gap-3 sm:grid-cols-2">
+              <Link href="/marketplace" className="group rounded-2xl border-[3px] border-sand bg-blue p-4 transition hover:-translate-y-0.5">
+                <span className="flex items-center justify-between font-display text-lg">Khareedar hain? <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" /></span>
+                <span className="mt-1 block text-sm text-sand/90">Apne event ke liye dukaandaar dhoondein</span>
+              </Link>
+              <Link href="/sell" className="group rounded-2xl border-[3px] border-sand bg-red p-4 transition hover:-translate-y-0.5">
+                <span className="flex items-center justify-between font-display text-lg">Dukaandaar hain? <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" /></span>
+                <span className="mt-1 block text-sm text-sand/90">Apni dukaan banayein, bilkul free</span>
+              </Link>
+            </div>
             <div className="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-sm text-sand/80">
-              <p><b className="block font-display text-2xl text-sand">Free</b>for families, always</p>
-              <p><b className="block font-display text-2xl text-sand">200</b>founding vendor spots</p>
-              <p><b className="block font-display text-2xl text-sand">10</b>celebration categories</p>
+              <p><b className="block font-display text-2xl text-sand">Free</b>khareedar ke liye, hamesha</p>
+              <p><b className="block font-display text-2xl text-sand"><CountUp value={200} /></b>founding dukaandaar spots</p>
+              <p><b className="block font-display text-2xl text-sand"><CountUp value={10} /></b>celebration categories</p>
             </div>
           </div>
           <HeroStage />
@@ -55,7 +72,7 @@ export default async function Home() {
       <Marquee items={cats.map((c) => c.name)} />
 
       {/* LAUNCHPAD */}
-      <section className="wrap grid items-center gap-12 py-20 lg:grid-cols-2">
+      <section data-stagger suppressHydrationWarning className="wrap grid items-center gap-12 py-20 lg:grid-cols-2">
         <div className="min-w-0">
           <p className="kicker">Event Launchpad</p>
           <h2 className="h-display mt-3 text-[clamp(2rem,5vw,3.6rem)]">Plan your ronaq in three moves.</h2>
@@ -82,7 +99,7 @@ export default async function Home() {
         <div className="wrap">
           <p className="kicker">Marketplace</p>
           <h2 className="h-display mt-3 text-[clamp(2rem,5vw,3.6rem)]">Kya chahiye?</h2>
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          <div data-stagger suppressHydrationWarning className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
             {cats.map((c, i) => (
               <Link key={c.id} href={`/c/${c.slug}`} className="card group overflow-hidden shadow-[5px_5px_0_var(--color-ink)] transition hover:-translate-x-1 hover:-translate-y-1 hover:-rotate-1 hover:shadow-[8px_8px_0_var(--color-red)]">
                 <div className="aspect-[5/4] overflow-hidden border-b-[3px] border-ink">
@@ -107,16 +124,16 @@ export default async function Home() {
           </div>
           <Link href="/marketplace?sort=rating" className="btn">See all vendors <ArrowRight size={16} /></Link>
         </div>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div data-stagger suppressHydrationWarning className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {cards.map((d, i) => <VendorCard key={d.vendor.id} data={d} saved={saved.has(d.vendor.id)} seed={i} />)}
         </div>
       </section>
 
       {/* TRUST */}
-      <section className="wrap grid gap-4 pb-6 sm:grid-cols-3">
+      <section data-stagger suppressHydrationWarning className="wrap grid gap-4 pb-6 sm:grid-cols-3">
         {[
           { icon: BadgePercent, t: "Honest price units", d: "Per person, per item or package, never mixed up. Custom quotes are clearly marked." },
-          { icon: ShieldCheck, t: "Reviewed profiles", d: "Our team checks every profile before it goes live. Badges show what's been verified." },
+          { icon: ShieldCheck, t: "Verified badges", d: "Badges show exactly what the Ronaq team has checked, and anyone can report a profile." },
           { icon: MessageCircle, t: "Your number stays private", d: "Message vendors in Ronaq and share only the event details you choose." },
         ].map(({ icon: I, t, d }) => (
           <div key={t} className="panel p-5">
@@ -128,19 +145,19 @@ export default async function Home() {
       </section>
 
       {/* SELL */}
-      <section className="wrap py-16">
+      <section data-stagger suppressHydrationWarning className="wrap py-16">
         <div className="relative overflow-hidden rounded-[32px] border-4 border-ink bg-blue text-sand shadow-[12px_12px_0_var(--color-red)]">
           <Bunting count={16} className="h-20" />
           <div className="grid items-center gap-8 px-6 pb-12 pt-4 sm:px-12 lg:grid-cols-[1.3fr_1fr]">
             <div className="min-w-0">
-              <p className="kicker !text-sand">For vendors</p>
-              <h2 className="h-display mt-3 text-[clamp(2rem,5vw,3.6rem)]">Your hunar, your own dukaan.</h2>
-              <p className="mt-3 max-w-[52ch] text-lg text-sand/85">Portfolio, prices and service areas on one page. Families message you directly. Our team can help you set it up.</p>
+              <p className="kicker !text-sand">Dukaandaar ke liye</p>
+              <h2 className="h-display mt-3 text-[clamp(2rem,5vw,3.6rem)]">Aap ka hunar, aap ki dukaan.</h2>
+              <p className="mt-3 max-w-[52ch] text-lg text-sand/85">Apna kaam, rates aur ilaqe ek hi page par. Khareedar aap ko seedha message karte hain. Hamari team setup mein madad bhi karti hai.</p>
               <Link href="/sell" className="btn btn-sand mt-7">Start selling <ArrowRight size={16} /></Link>
             </div>
             <div>
-              <p className="font-shade text-[clamp(5rem,13vw,9rem)] leading-[.85]">200</p>
-              <p className="mt-2 flex flex-wrap items-center gap-3">founding vendors list free, with a badge that stays <FoundingBadge className="ml-2" /></p>
+              <p className="font-shade text-[clamp(5rem,13vw,9rem)] leading-[.85]"><CountUp value={200} /></p>
+              <p className="mt-2 flex flex-wrap items-center gap-3">founding dukaandaar free list honge, aur badge hamesha rahega <FoundingBadge className="ml-2" /></p>
             </div>
           </div>
         </div>

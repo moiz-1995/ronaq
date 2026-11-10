@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/Select";
 import { useActionState, useState } from "react";
 import { saveService } from "@/app/actions/seller";
 import { RemoveServiceButton } from "../RemoveServiceButton";
@@ -19,38 +20,38 @@ export function ServiceForm({ svc, priceModels, attrs, canDelete }: { svc: Svc; 
     <form action={action} className="mt-6 grid gap-6">
       <input type="hidden" name="id" value={svc.id} />
       <section className="card grid gap-4 bg-white p-5 sm:p-6">
-        <div className="field"><label className="label" htmlFor="s-title">Service title</label><input id="s-title" name="title" className="input" defaultValue={svc.title} required maxLength={100} /></div>
-        <div className="field"><label className="label" htmlFor="s-desc">What&apos;s included</label><textarea id="s-desc" name="description" className="input" defaultValue={svc.description ?? ""} maxLength={1500} /></div>
+        <div className="field"><label className="label" htmlFor="s-title">Service ka naam (Title)</label><input id="s-title" name="title" className="input" defaultValue={svc.title} required maxLength={100} /></div>
+        <div className="field"><label className="label" htmlFor="s-desc">Is mein kya kya shamil hai? (What&apos;s included)</label><textarea id="s-desc" name="description" className="input" defaultValue={svc.description ?? ""} maxLength={1500} /></div>
         <fieldset className="grid gap-2">
-          <legend className="label mb-1">Pricing</legend>
+          <legend className="label mb-1">Rate kaise lagate hain? (Pricing)</legend>
           <div className="flex flex-wrap gap-2">
             {models.map((m) => <label key={m} className="check"><input type="radio" name="pricingModel" value={m} checked={model === m} onChange={() => setModel(m)} className="sr-only" /> {PRICING_LABELS[m as keyof typeof PRICING_LABELS]}</label>)}
           </div>
           {model !== "quote" ? (
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="field"><label className="label text-xs" htmlFor="s-amt">Price in PKR {model === "per_person" ? "(per person)" : model === "per_item" ? "(per item)" : model === "starting" ? "(starting from)" : ""}</label><input id="s-amt" name="priceAmount" inputMode="numeric" className="input" defaultValue={svc.priceAmount ?? ""} /></div>
-              <div className="field"><label className="label text-xs" htmlFor="s-min">Minimum order (optional)</label><input id="s-min" name="minOrder" className="input" defaultValue={svc.minOrder ?? ""} placeholder="e.g. 50 guests, 20 pieces" /></div>
+              <div className="field"><label className="label text-xs" htmlFor="s-amt">Rate PKR mein {model === "per_person" ? "(per person)" : model === "per_item" ? "(per item)" : model === "starting" ? "(starting from)" : ""}</label><input id="s-amt" name="priceAmount" inputMode="numeric" className="input" defaultValue={svc.priceAmount ?? ""} /></div>
+              <div className="field"><label className="label text-xs" htmlFor="s-min">Kam az kam order (optional)</label><input id="s-min" name="minOrder" className="input" defaultValue={svc.minOrder ?? ""} placeholder="Maslan 50 mehman, 20 piece" /></div>
             </div>
-          ) : <p className="rounded-xl bg-sand p-3 text-sm">Families will see “Custom quote” and ask you for a price. You&apos;ll appear after priced vendors when they sort by price.</p>}
+          ) : <p className="rounded-xl bg-sand p-3 text-sm">Khareedar ko “Custom quote” nazar aayega aur woh aap se rate poochenge. Rate wale dukaandaar list mein pehle aate hain.</p>}
         </fieldset>
         <fieldset className="grid gap-2">
-          <legend className="label mb-1">Occasions you do</legend>
+          <legend className="label mb-1">Kin mauqon par kaam karte hain? (Occasions)</legend>
           <div className="flex flex-wrap gap-2">{OCCASIONS.map((o) => <label key={o} className="check !text-xs"><input type="checkbox" name="occasions" value={o} defaultChecked={svc.occasions.includes(o)} className="sr-only" /> {o}</label>)}</div>
         </fieldset>
       </section>
 
       {attrs.length > 0 && (
         <section className="card grid gap-5 bg-white p-5 sm:p-6">
-          <div><h2 className="font-display text-lg">Details</h2><p className="text-sm text-mute">These help families filter and compare.</p></div>
+          <div><h2 className="font-display text-lg">Tafseel (Details)</h2><p className="text-sm text-mute">In se khareedar filter aur muqabla karte hain.</p></div>
           {attrs.map((a) => {
             const val = svc.attributes[a.key];
             const name = `attr_${a.key}`;
             return (
               <div key={a.key} className="field">
-                <span className="label" id={`lbl-${a.key}`}>{a.label}{a.required && <span className="text-red"> *</span>}{a.vendorDeclared && <span className="ml-2 text-xs font-normal text-mute">(shown as declared by you)</span>}</span>
+                <span className="label" id={`lbl-${a.key}`}>{a.label}{a.required && <span className="text-red"> *</span>}{a.vendorDeclared && <span className="ml-2 text-xs font-normal text-mute">(aap ke batane par)</span>}</span>
                 {a.type === "boolean" && <label className="flex items-center gap-2 text-sm"><input type="checkbox" name={name} defaultChecked={val === true} className="h-4 w-4 accent-red" aria-labelledby={`lbl-${a.key}`} /> Yes</label>}
                 {a.type === "multiselect" && <div className="flex flex-wrap gap-2" role="group" aria-labelledby={`lbl-${a.key}`}>{a.options.map((o) => <label key={o} className="check !text-xs"><input type="checkbox" name={name} value={o} defaultChecked={Array.isArray(val) && val.includes(o)} className="sr-only" /> {o}</label>)}</div>}
-                {a.type === "select" && <select name={name} className="input" defaultValue={String(val ?? "")} aria-labelledby={`lbl-${a.key}`}><option value="">Choose…</option>{a.options.map((o) => <option key={o}>{o}</option>)}</select>}
+                {a.type === "select" && <Select name={name} className="input" defaultValue={String(val ?? "")} aria-labelledby={`lbl-${a.key}`}><option value="">Chunein…</option>{a.options.map((o) => <option key={o}>{o}</option>)}</Select>}
                 {a.type === "number" && <div className="flex items-center gap-2"><input name={name} inputMode="numeric" className="input max-w-[160px]" defaultValue={typeof val === "number" ? val : ""} aria-labelledby={`lbl-${a.key}`} />{a.unit && <span className="text-sm text-mute">{a.unit}</span>}</div>}
                 {a.type === "text" && <input name={name} className="input" defaultValue={typeof val === "string" ? val : ""} aria-labelledby={`lbl-${a.key}`} />}
                 {a.help && <p className="hint">{a.help}</p>}
@@ -60,10 +61,10 @@ export function ServiceForm({ svc, priceModels, attrs, canDelete }: { svc: Svc; 
         </section>
       )}
 
-      <label className="flex items-center gap-2 font-medium"><input type="checkbox" name="active" defaultChecked={svc.active} className="h-4 w-4 accent-red" /> Show this service on my profile</label>
+      <label className="flex items-center gap-2 font-medium"><input type="checkbox" name="active" defaultChecked={svc.active} className="h-4 w-4 accent-red" /> Profile par dikhayein (Show this service)</label>
       <FormMessage state={state} />
       <div className="flex flex-wrap justify-between gap-3">
-        <Submit>Save service</Submit>
+        <Submit pendingText="Save ho raha hai…">Service save karein</Submit>
         <RemoveServiceButton id={svc.id} title={svc.title} canRemove={canDelete} />
       </div>
     </form>

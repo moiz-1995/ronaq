@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/Select";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { saveEvent } from "@/app/actions/planner";
@@ -17,9 +18,9 @@ export function EventForm({ ev, types, templates }: { ev?: Ev; types: { value: s
         <div className="field sm:col-span-2"><label className="label" htmlFor="name">Event name</label><input id="name" name="name" className="input" required defaultValue={ev?.name} placeholder="e.g. Hamza's 5th birthday" /></div>
         <div className="field">
           <label className="label" htmlFor="type">Type</label>
-          <select id="type" name="type" className="input" defaultValue={ev?.type ?? "wedding"} onChange={(e) => !label && setLabel(types.find((t) => t.value === e.target.value)?.heading ?? "")}>
+          <Select id="type" name="type" className="input" defaultValue={ev?.type ?? "wedding"} onChange={(e) => !label && setLabel(types.find((t) => t.value === e.target.value)?.heading ?? "")}>
             {types.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-          </select>
+          </Select>
         </div>
         <div className="field"><label className="label" htmlFor="label">Heading word</label><input id="label" name="label" className="input" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={28} placeholder="Shaadi, Mehndi, Birthday…" /><p className="hint">Shown as “{label ? `${label} ki Ronaq` : "Ap ki Ronaq"}” when this is your primary event.</p></div>
         <div className="field"><label className="label" htmlFor="date">Date</label><input id="date" name="date" type="date" className="input" defaultValue={ev?.date ?? ""} /></div>
@@ -29,10 +30,10 @@ export function EventForm({ ev, types, templates }: { ev?: Ev; types: { value: s
         {templates && !ev && (
           <div className="field">
             <label className="label" htmlFor="template">Start checklist from</label>
-            <select id="template" name="template" className="input" defaultValue="">
+            <Select id="template" name="template" className="input" defaultValue="">
               <option value="">Empty checklist</option>
               {templates.map((t) => <option key={t.slug} value={t.slug}>{t.name}</option>)}
-            </select>
+            </Select>
           </div>
         )}
         <div className="field sm:col-span-2"><label className="label" htmlFor="description">Notes</label><textarea id="description" name="description" className="input" defaultValue={ev?.description ?? ""} /></div>

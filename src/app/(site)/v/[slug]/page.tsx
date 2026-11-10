@@ -91,7 +91,7 @@ export default async function VendorPage({ params }: { params: Promise<{ slug: s
           <Picture src={cover} alt={`${v.name} cover`} fallbackKind={mainCat?.art ?? "henna"} seed={7} ratio={3.6} className="h-full w-full" />
           <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent" />
         </div>
-        <div className="wrap relative -mt-20 grid gap-6 lg:grid-cols-[1fr_340px]">
+        <div className="rise-row wrap relative -mt-20 grid gap-6 lg:grid-cols-[1fr_340px]">
           <div className="card card-shadow min-w-0 bg-white p-5 sm:p-7">
             <div className="flex flex-wrap items-start gap-4">
               <div className="h-20 w-20 flex-none overflow-hidden rounded-2xl border-[3px] border-ink bg-sand">

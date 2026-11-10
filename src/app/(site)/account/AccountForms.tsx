@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/Select";
 import { useActionState } from "react";
 import { changePassword, updateProfile } from "@/app/actions/planner";
 import { resendVerification, signOutAction } from "@/app/actions/auth";
@@ -24,7 +25,7 @@ export function AccountForms({ user, cities, cats }: { user: U; cities: { id: st
           <div className="field"><label className="label" htmlFor="phone">Phone (optional)</label><input id="phone" name="phone" className="input" defaultValue={user.phone ?? ""} inputMode="tel" placeholder="0300 1234567" /><p className="hint">Never shown to vendors unless you share it yourself.</p></div>
           <div className="field">
             <label className="label" htmlFor="cityId">City</label>
-            <select id="cityId" name="cityId" className="input" defaultValue={user.cityId ?? ""}><option value="">Choose…</option>{cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+            <Select id="cityId" name="cityId" className="input" defaultValue={user.cityId ?? ""}><option value="">Choose…</option>{cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
           </div>
         </div>
         <fieldset>

@@ -9,15 +9,15 @@ export function RemoveServiceButton({ id, title, canRemove }: { id: string; titl
   const [busy, start] = useTransition();
   return (
     <>
-      <button type="button" className="btn btn-sm" onClick={() => setOpen(true)}><Trash2 size={15} /> Remove</button>
+      <button type="button" className="btn btn-sm" onClick={() => setOpen(true)}><Trash2 size={15} /> Hatayein</button>
       {canRemove ? (
-        <ConfirmDialog open={open} title={`Remove ${title}?`} confirmLabel="Yes, remove it" cancelLabel="Keep it" busy={busy} onClose={() => setOpen(false)}
+        <ConfirmDialog open={open} title={`${title} hatana hai?`} confirmLabel="Haan, hata dein" cancelLabel="Rehne dein" busy={busy} onClose={() => setOpen(false)}
           onConfirm={() => start(async () => { await deleteService(id); setOpen(false); })}>
-          It will disappear from your profile and the marketplace. Your photos stay in your portfolio. Only taking a break? Open the service and untick &ldquo;Show this service on my profile&rdquo; instead.
+          Yeh aap ki profile aur marketplace se hat jayegi. Aap ki photos mehfooz rahengi. Sirf kuch din ka break hai? To service khol kar &ldquo;Profile par dikhayein&rdquo; ka tick hata dein.
         </ConfirmDialog>
       ) : (
-        <ConfirmDialog open={open} title="This is your only service" cancelLabel="Okay" onClose={() => setOpen(false)}>
-          Families find you through your services, so your profile needs at least one. Add the new service first, then remove this one.
+        <ConfirmDialog open={open} title="Yeh aap ki akeli service hai" cancelLabel="Theek hai" onClose={() => setOpen(false)}>
+          Khareedar aap ko services se hi dhoondte hain, is liye kam az kam ek zaroori hai. Pehle nayi service add karein, phir yeh hatayein.
         </ConfirmDialog>
       )}
     </>

@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@/components/ui/Select";
 import { useActionState, useEffect, useRef, useTransition } from "react";
 import { Trash2 } from "lucide-react";
 import { addReminder, deleteReminder, toggleReminder } from "@/app/actions/planner";
@@ -27,7 +28,7 @@ export function ReminderForm({ events }: { events: { id: string; name: string }[
       <input id="rt" name="title" className="input" placeholder="e.g. Final headcount to caterer" required />
       <div className="grid grid-cols-2 gap-2">
         <input name="dueDate" type="date" className="input" required aria-label="Date" />
-        <select name="eventId" className="input" aria-label="Event" defaultValue=""><option value="">No event</option>{events.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}</select>
+        <Select name="eventId" className="input" aria-label="Event" defaultValue=""><option value="">No event</option>{events.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}</Select>
       </div>
       <FormMessage state={state} />
       <Submit className="btn btn-sm btn-blue">Add reminder</Submit>

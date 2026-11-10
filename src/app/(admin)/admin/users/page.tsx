@@ -7,6 +7,7 @@ import { OpForm } from "@/components/admin/OpForm";
 import { StatusChip } from "@/components/ui/badges";
 import { timeAgo } from "@/lib/time";
 import { RoleSelect } from "./RoleSelect";
+import { ResetLinkButton } from "./ResetLinkButton";
 
 export const metadata = { title: "Users" };
 
@@ -34,7 +35,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                 <td className="text-mute">{timeAgo(u.createdAt)}</td>
                 <td className="p-2">{u.id !== me.id && (u.status === "active"
                   ? <OpForm action={moderateUser} hidden={{ id: u.id, op: "suspend" }} label="Suspend" reason="Reason" className="btn btn-sm btn-red" />
-                  : <OpForm action={moderateUser} hidden={{ id: u.id, op: "reactivate" }} label="Reactivate" />)}</td>
+                  : <OpForm action={moderateUser} hidden={{ id: u.id, op: "reactivate" }} label="Reactivate" />)}{u.role === "user" && <ResetLinkButton id={u.id} />}</td>
               </tr>
             ))}
           </tbody>

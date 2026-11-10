@@ -8,7 +8,7 @@ import { CraftArt } from "@/components/art/CraftArt";
 import { AddServiceForm } from "./AddServiceForm";
 import { RemoveServiceButton } from "./RemoveServiceButton";
 
-export const metadata = { title: "Services" };
+export const metadata = { title: "Services aur rates" };
 
 export default async function SellerServices() {
   const { vendor } = await requireVendorPage("/seller/services");
@@ -18,9 +18,9 @@ export default async function SellerServices() {
   ]);
   return (
     <div className="wrap max-w-4xl py-8">
-      <h1 className="h-display text-3xl">Services &amp; prices</h1>
-      <p className="mt-1 text-mute">Each service has its own category, pricing and details. Details shown here become filters families use to find you.</p>
-      <ul className="mt-6 grid gap-4">
+      <h1 className="h-display text-3xl">Services aur rates</h1>
+      <p className="mt-1 text-mute">Har service ka apna rate aur tafseel hoti hai. Yehi tafseel khareedar filter mein istemal karte hain.</p>
+      <ul data-stagger suppressHydrationWarning className="mt-6 grid gap-4">
         {services.map((svc, i) => {
           const cat = cats.find((c) => c.id === svc.categoryId);
           const p = displayPrice(svc.pricingModel, svc.priceAmount);
@@ -33,7 +33,7 @@ export default async function SellerServices() {
                 <div className="min-w-0 flex-1">
                   <p className="font-display text-xs text-blue">{cat?.name.toUpperCase()}</p>
                   <p className="text-lg font-bold">{svc.title}</p>
-                  <p className="text-sm text-mute">{filled} details filled{svc.active ? "" : " · hidden"}</p>
+                  <p className="text-sm text-mute">{filled} tafseel bhari hain{svc.active ? "" : " · chhupi hui"}</p>
                 </div>
                 <p className="text-right"><span className="text-xs text-mute">{p.lead} </span><b className="font-display text-red">{p.amount}</b> <span className="text-xs text-mute">{p.unit}</span></p>
               </Link>

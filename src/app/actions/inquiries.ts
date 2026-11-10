@@ -8,6 +8,7 @@ import { requireUser } from "@/lib/auth";
 import { notify, track } from "@/lib/track";
 import { loadThreadFor } from "@/lib/threads";
 import { rateLimit, TOO_MANY } from "@/lib/ratelimit";
+import { todayPKT } from "@/lib/time";
 
 const inquirySchema = z.object({
   vendorId: z.string().min(1),
@@ -66,6 +67,27 @@ export async function createInquiry(_: unknown, form: FormData): Promise<{ error
   redirect(`/inbox/${inq.id}?sent=1`);
 }
 
+const viewingAs = (v: unknown) => (v === "vendor" || v === "consumer" ? v : undefined);
+
+/** Lets a vendor try the whole query flow on their own account. Test queries are private and never counted. */
+export async function sendTestQuery() {
+  const user = await requireUser("/seller");
+  const vendor = await db.query.vendors.findFirst({ where: eq(s.vendors.ownerId, user.id) });
+  if (!vendor) redirect("/seller/onboarding");
+  if (!(await rateLimit("test-query", 10, 60 * 60 * 1000, user.id))) redirect("/seller/inquiries");
+  const svc = await db.query.vendorServices.findFirst({ where: eq(s.vendorServices.vendorId, vendor.id) });
+  const eventDate = new Date(Date.parse(todayPKT() + "T00:00:00Z") + 30 * 86400000).toISOString().slice(0, 10);
+  const now = new Date();
+  const [inq] = await db.insert(s.inquiries).values({
+    consumerId: user.id, vendorId: vendor.id, categoryId: svc?.categoryId ?? null, isTest: true, status: "sent", source: "test",
+    shared: { eventName: "Test shaadi", eventDate, guestCount: 200, budget: 150000, ...(svc ? { service: svc.title } : {}) },
+    vendorUnread: 1, consumerUnread: 0, lastMessageAt: now,
+  }).returning();
+  await db.insert(s.messages).values({ inquiryId: inq.id, senderId: user.id, senderRole: "consumer", createdAt: now, body: "Assalam o alaikum! Yeh ek test query hai. Agle mahine hamari shaadi hai, kya aap available hain aur rate kya hoga?" });
+  await notify(user.id, { type: "inquiry_new", title: "Nayi test query aayi hai", href: `/seller/inquiries/${inq.id}` });
+  redirect(`/seller/inquiries/${inq.id}`);
+}
+
 export async function sendMessage(_: unknown, form: FormData): Promise<{ error?: string; ok?: boolean } | undefined> {
   const user = await requireUser();
   const inquiryId = String(form.get("inquiryId") ?? "");
@@ -73,7 +95,7 @@ export async function sendMessage(_: unknown, form: FormData): Promise<{ error?:
   if (!body) return { error: "Write a message first." };
   if (!(await rateLimit("message", 60, 10 * 60 * 1000, user.id))) return { error: TOO_MANY };
   if (body.length > 2000) return { error: "Messages can be up to 2,000 characters." };
-  const t = await loadThreadFor(inquiryId, user.id);
+  const t = await loadThreadFor(inquiryId, user.id, viewingAs(form.get("as")));
   if (!t) return { error: "We couldn't find this conversation." };
   if (t.inq.status === "closed") return { error: "This conversation is closed. Reopen it to send a message." };
   const now = new Date();
@@ -84,7 +106,7 @@ export async function sendMessage(_: unknown, form: FormData): Promise<{ error?:
       firstResponseAt: t.inq.firstResponseAt ?? now,
     }).where(eq(s.inquiries.id, inquiryId));
     await notify(t.inq.consumerId, { type: "inquiry_reply", title: `${t.vendor.name} replied`, body: body.slice(0, 120), href: `/inbox/${inquiryId}` });
-    await track("inquiry_response_sent", { userId: user.id, props: { first: !t.inq.firstResponseAt } });
+    if (!t.inq.isTest) await track("inquiry_response_sent", { userId: user.id, props: { first: !t.inq.firstResponseAt } });
   } else {
     await db.update(s.inquiries).set({ vendorUnread: sql`${s.inquiries.vendorUnread} + 1`, lastMessageAt: now }).where(eq(s.inquiries.id, inquiryId));
     await notify(t.vendor.ownerId, { type: "inquiry_message", title: `New message from ${user.name}`, body: body.slice(0, 120), href: `/seller/inquiries/${inquiryId}` });
@@ -94,9 +116,9 @@ export async function sendMessage(_: unknown, form: FormData): Promise<{ error?:
   return { ok: true };
 }
 
-export async function setInquiryClosed(inquiryId: string, closed: boolean) {
+export async function setInquiryClosed(inquiryId: string, closed: boolean, as?: "consumer" | "vendor") {
   const user = await requireUser();
-  const t = await loadThreadFor(inquiryId, user.id);
+  const t = await loadThreadFor(inquiryId, user.id, viewingAs(as));
   if (!t) return;
   await db.update(s.inquiries).set({ status: closed ? "closed" : t.inq.firstResponseAt ? "responded" : "sent" }).where(eq(s.inquiries.id, inquiryId));
   revalidatePath(`/inbox/${inquiryId}`);

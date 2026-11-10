@@ -22,7 +22,7 @@ export async function vendorCompleteness(vendorId: string) {
 /** FR-SEL-011: metrics come only from this vendor's own data. */
 export async function vendorMetrics(vendorId: string) {
   const v = (await db.query.vendors.findFirst({ where: eq(s.vendors.id, vendorId) }))!;
-  const inqs = await db.select().from(s.inquiries).where(eq(s.inquiries.vendorId, vendorId));
+  const inqs = await db.select().from(s.inquiries).where(and(eq(s.inquiries.vendorId, vendorId), eq(s.inquiries.isTest, false)));
   const responded = inqs.filter((i) => i.firstResponseAt);
   const avgH = responded.length ? responded.reduce((a, i) => a + Math.max(0, i.firstResponseAt!.getTime() - i.createdAt.getTime()), 0) / responded.length / 3600000 : null;
   const [{ n: saves }] = await db.select({ n: sql<number>`count(*)` }).from(s.shortlist).where(eq(s.shortlist.vendorId, vendorId));

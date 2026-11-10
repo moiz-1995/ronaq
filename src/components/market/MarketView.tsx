@@ -108,7 +108,7 @@ export async function MarketView({ searchParams, category }: { searchParams: Rec
             )}
             {params.sort === "price" &&<p className="mb-4 rounded-xl bg-sand px-3 py-2 text-sm">Sorted by listed starting price. Vendors who only give custom quotes appear last.</p>}
             {cards.length ? (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div data-stagger suppressHydrationWarning className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {cards.map((d, i) => <VendorCard key={d.vendor.id} data={d} saved={saved.has(d.vendor.id)} seed={i + (result.page - 1) * 12} />)}
               </div>
             ) : (

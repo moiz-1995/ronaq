@@ -16,7 +16,7 @@ export function SiteFooter() {
           <Link href="/signup">Join free</Link>
         </div>
         <div className="grid content-start gap-2 text-sm">
-          <p className="font-display text-xs tracking-wide text-sand/60">VENDORS</p>
+          <p className="font-display text-xs tracking-wide text-sand/60">DUKAANDAAR</p>
           <Link href="/sell">Start selling</Link>
           <Link href="/seller">Vendor dashboard</Link>
           <Link href="/sell/claim">Claim your profile</Link>

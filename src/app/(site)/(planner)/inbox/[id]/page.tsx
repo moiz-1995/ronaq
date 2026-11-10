@@ -10,7 +10,7 @@ export default async function ThreadPage({ params, searchParams }: { params: Pro
   const { id } = await params;
   const { sent } = await searchParams;
   const user = await requireUser(`/inbox/${id}`);
-  const t = await loadThreadFor(id, user.id);
+  const t = await loadThreadFor(id, user.id, "consumer");
   if (!t || t.role !== "consumer") notFound();
   await markThreadRead(id, "consumer");
   return (

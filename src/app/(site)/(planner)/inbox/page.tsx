@@ -39,7 +39,7 @@ export default async function InboxPage() {
                   <div className="h-14 w-14 flex-none overflow-hidden rounded-xl border-2 border-ink"><VendorLogo src={v.logoImage} name={v.name} className="h-full w-full" /></div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="truncate font-bold">{v.name}</p>
+                      <p className="truncate font-bold">{v.name}{r.isTest && <span className="chip ml-2 bg-sun">TEST</span>}</p>
                       <span className="flex-none text-xs text-mute">{timeAgo(r.lastMessageAt)}</span>
                     </div>
                     <p className={`truncate text-sm ${r.consumerUnread ? "font-bold" : "text-mute"}`}>{last?.senderRole === "consumer" ? "You: " : ""}{last?.body}</p>
