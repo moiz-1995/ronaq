@@ -2,7 +2,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { db, schema as s } from "@/db";
 import type { PricingModel } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
@@ -192,7 +192,7 @@ export async function addService(_: unknown, form: FormData): Promise<Result> {
   if (!cat) return { error: "Choose a category." };
   const [svc] = await db.insert(s.vendorServices).values({ vendorId: vendor.id, categoryId: cat.id, title: cat.name, pricingModel: (cat.priceModels?.[0] as PricingModel) ?? "quote" }).returning();
   refresh(vendor.slug);
-  redirect(`/seller/services/${svc.id}`);
+  return { ok: true, goTo: `/seller/services/${svc.id}` };
 }
 
 export async function saveService(_: unknown, form: FormData): Promise<Result> {
@@ -241,12 +241,15 @@ export async function uploadPortfolio(_: unknown, form: FormData): Promise<Resul
   if (files.length > 10) return { error: "Upload up to 10 photos at a time." };
   const [{ n }] = await db.select({ n: sql<number>`count(*)` }).from(s.portfolioItems).where(eq(s.portfolioItems.vendorId, vendor.id));
   if (Number(n) + files.length > 60) return { error: "You can have up to 60 portfolio photos. Remove some first." };
+  // only file photos under this vendor's own services and albums
+  const serviceId = await ownService(vendor.id, str(form.get("serviceId")));
+  const albumId = await ownAlbum(vendor.id, str(form.get("albumId")));
   try {
     let k = Number(n);
     for (const f of files) {
       const url = await saveImage(f, "portfolio");
       await db.insert(s.portfolioItems).values({
-        vendorId: vendor.id, serviceId: str(form.get("serviceId")), imageUrl: url, caption: str(form.get("caption"), 120),
+        vendorId: vendor.id, serviceId, albumId, imageUrl: url, caption: str(form.get("caption"), 120),
         tags: String(form.get("tags") ?? "").split(",").map((t) => t.trim()).filter(Boolean).slice(0, 8), priceExample: str(form.get("priceExample"), 80), sortOrder: k++,
       });
     }
@@ -257,6 +260,62 @@ export async function uploadPortfolio(_: unknown, form: FormData): Promise<Resul
   await track("portfolio_uploaded", { userId: user.id, props: { count: files.length } });
   refresh(vendor.slug);
   return { ok: true, message: `${files.length} photo${files.length > 1 ? "s" : ""} added.` };
+}
+
+async function ownService(vendorId: string, id: string | null) {
+  if (!id) return null;
+  return (await db.query.vendorServices.findFirst({ where: and(eq(s.vendorServices.id, id), eq(s.vendorServices.vendorId, vendorId)) }))?.id ?? null;
+}
+
+async function ownAlbum(vendorId: string, id: string | null) {
+  if (!id) return null;
+  return (await db.query.portfolioAlbums.findFirst({ where: and(eq(s.portfolioAlbums.id, id), eq(s.portfolioAlbums.vendorId, vendorId)) }))?.id ?? null;
+}
+
+// ---------- portfolio albums ----------
+const MAX_ALBUMS = 30;
+
+export async function createAlbum(name: string, photoIds: string[]): Promise<{ error?: string; id?: string }> {
+  const { vendor } = await requireVendor();
+  const clean = String(name ?? "").trim().slice(0, 60);
+  if (!clean) return { error: "Give the album a name." };
+  const [{ n }] = await db.select({ n: sql<number>`count(*)` }).from(s.portfolioAlbums).where(eq(s.portfolioAlbums.vendorId, vendor.id));
+  if (Number(n) >= MAX_ALBUMS) return { error: `You can have up to ${MAX_ALBUMS} albums.` };
+  const [a] = await db.insert(s.portfolioAlbums).values({ vendorId: vendor.id, name: clean, sortOrder: Number(n) }).returning();
+  await fileUnder(vendor.id, photoIds, a.id);
+  refresh(vendor.slug);
+  return { id: a.id };
+}
+
+export async function renameAlbum(id: string, name: string): Promise<{ error?: string }> {
+  const { vendor } = await requireVendor();
+  const clean = String(name ?? "").trim().slice(0, 60);
+  if (!clean) return { error: "Give the album a name." };
+  await db.update(s.portfolioAlbums).set({ name: clean }).where(and(eq(s.portfolioAlbums.id, String(id)), eq(s.portfolioAlbums.vendorId, vendor.id)));
+  refresh(vendor.slug);
+  return {};
+}
+
+/** Deleting an album keeps its photos; they just stop being in an album. */
+export async function deleteAlbum(id: string) {
+  const { vendor } = await requireVendor();
+  await db.update(s.portfolioItems).set({ albumId: null }).where(and(eq(s.portfolioItems.vendorId, vendor.id), eq(s.portfolioItems.albumId, String(id))));
+  await db.delete(s.portfolioAlbums).where(and(eq(s.portfolioAlbums.id, String(id)), eq(s.portfolioAlbums.vendorId, vendor.id)));
+  refresh(vendor.slug);
+}
+
+export async function movePhotosToAlbum(photoIds: string[], albumId: string | null): Promise<{ error?: string }> {
+  const { vendor } = await requireVendor();
+  const target = await ownAlbum(vendor.id, albumId);
+  if (albumId && !target) return { error: "That album doesn't exist any more." };
+  await fileUnder(vendor.id, photoIds, target);
+  refresh(vendor.slug);
+  return {};
+}
+
+async function fileUnder(vendorId: string, photoIds: unknown, albumId: string | null) {
+  const ids = (Array.isArray(photoIds) ? photoIds : []).map(String).slice(0, 60);
+  if (ids.length) await db.update(s.portfolioItems).set({ albumId }).where(and(eq(s.portfolioItems.vendorId, vendorId), inArray(s.portfolioItems.id, ids)));
 }
 
 export async function updatePortfolioItem(_: unknown, form: FormData): Promise<Result> {
@@ -329,5 +388,5 @@ export async function claimProfile(_: unknown, form: FormData): Promise<Result> 
   await db.update(s.users).set({ isSeller: true }).where(eq(s.users.id, user.id));
   await audit({ actorId: user.id, action: "vendor.claimed", objectType: "vendor", objectId: v.id });
   await enterVendorMode();
-  redirect("/seller?claimed=1");
+  return { ok: true, goTo: "/seller?claimed=1" };
 }

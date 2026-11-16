@@ -3,12 +3,13 @@ import { Select } from "@/components/ui/Select";
 import { useActionState, useState } from "react";
 import { Star } from "lucide-react";
 import { createReview } from "@/app/actions/reviews";
-import { FormMessage, Submit } from "@/components/ui/form";
+import { FormMessage, Submit, useGoTo } from "@/components/ui/form";
 
 const OCCASIONS = ["Wedding", "Mehndi", "Barat", "Walima", "Dholki", "Engagement", "Birthday", "Aqeeqa", "Corporate", "Other"];
 
 export function ReviewForm({ vendorId, needsEvidence, premoderated }: { vendorId: string; needsEvidence: boolean; premoderated: boolean }) {
   const [state, action] = useActionState(createReview, undefined);
+  useGoTo(state);
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   return (

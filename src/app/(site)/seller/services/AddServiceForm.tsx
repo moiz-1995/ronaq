@@ -3,10 +3,11 @@ import { Select } from "@/components/ui/Select";
 import { useActionState } from "react";
 import { Plus } from "lucide-react";
 import { addService } from "@/app/actions/seller";
-import { FormMessage, Submit } from "@/components/ui/form";
+import { FormMessage, Submit, useGoTo } from "@/components/ui/form";
 
 export function AddServiceForm({ cats }: { cats: { id: string; name: string }[] }) {
   const [state, action] = useActionState(addService, undefined);
+  useGoTo(state);
   if (!cats.length) return null;
   return (
     <form action={action} className="card mt-6 flex flex-wrap items-end gap-3 border-dashed bg-sand/50 p-4">

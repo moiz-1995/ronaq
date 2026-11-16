@@ -1,5 +1,6 @@
 "use client";
 import { Select } from "@/components/ui/Select";
+import Link from "next/link";
 import { useActionState } from "react";
 import { changePassword, updateProfile } from "@/app/actions/planner";
 import { resendVerification, signOutAction } from "@/app/actions/auth";
@@ -53,7 +54,7 @@ export function AccountForms({ user, cities, cats }: { user: U; cities: { id: st
           <div className="field"><label className="label" htmlFor="next">New password</label><input id="next" name="next" type="password" className="input" autoComplete="new-password" minLength={8} required /></div>
         </div>
         <FormMessage state={pw} />
-        <div><Submit>Change password</Submit></div>
+        <div className="flex flex-wrap items-center justify-between gap-3"><Submit>Change password</Submit><Link href="/forgot" className="text-sm font-bold text-red underline">Forgot your current password?</Link></div>
       </form>
 
       <form action={signOutAction}><button className="btn">Sign out</button></form>

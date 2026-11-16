@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getUser, safeNext } from "@/lib/auth";
 import { AuthForm } from "./AuthForm";
 import { AuthShell } from "@/components/site/AuthShell";
@@ -8,13 +7,15 @@ export const metadata = { title: "Sign in" };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; reason?: string }> }) {
   const { next, reason } = await searchParams;
-  if (await getUser()) redirect(safeNext(next));
+  // no server redirect here: signing in re-renders this page, and a redirect from it would race the form's own hand-off
+  const signedIn = await getUser();
+  const signedInHome = signedIn ? safeNext(next, signedIn.role !== "user" ? "/admin" : "/dashboard") : undefined;
   return (
     <AuthShell
       title="Khush aamdeed!"
       sub={reason ?? (next ? "Sign in karein aur wahin se shuru karein." : "Welcome back. Sign in karein aur apna kaam jaari rakhein.")}
     >
-      <AuthForm mode="login" next={next} />
+      <AuthForm mode="login" next={next} signedInHome={signedInHome} />
       <p className="text-sm">
         Ronaq par naye hain? <Link className="font-bold text-red underline" href={`/signup${next ? `?next=${encodeURIComponent(next)}` : ""}`}>Free account banayein</Link>
       </p>

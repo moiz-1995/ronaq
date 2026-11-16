@@ -3,13 +3,14 @@ import { Select } from "@/components/ui/Select";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { saveEvent } from "@/app/actions/planner";
-import { FormMessage, Submit } from "@/components/ui/form";
+import { FormMessage, Submit, useGoTo } from "@/components/ui/form";
 import { GuestPicker } from "./GuestPicker";
 
 type Ev = { id: string; name: string; type: string; label: string | null; date: string | null; time: string | null; location: string | null; guestCount: number | null; budget: number | null; description: string | null; isPrimary: boolean };
 
 export function EventForm({ ev, types, templates }: { ev?: Ev; types: { value: string; label: string; heading: string }[]; templates?: { slug: string; name: string }[] }) {
   const [state, action] = useActionState(saveEvent, undefined);
+  useGoTo(state);
   const [label, setLabel] = useState(ev?.label ?? "");
   return (
     <form action={action} className="card card-shadow grid gap-5 bg-white p-5 sm:p-7">

@@ -48,7 +48,7 @@ export async function SiteHeader() {
                   <Bell size={20} />
                   {bell > 0 && <Dot n={bell} />}
                 </Link>
-                <AccountMenu name={user.name} isSeller={!!vendor} isStaff={user.role !== "user"} vendorMode={vendorMode} otherUnread={otherUnread} />
+                <AccountMenu name={user.name} isSeller={!!vendor} isStaff={user.role !== "user"} vendorMode={vendorMode} otherUnread={otherUnread} shareSlug={vendor?.status === "approved" ? vendor.slug : null} shareName={vendor?.name ?? null} />
               </>
             ) : (
               <>

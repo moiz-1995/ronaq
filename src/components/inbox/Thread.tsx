@@ -55,7 +55,12 @@ export async function Thread({ inq, role, title, subtitle }: { inq: Inquiry; rol
           return (
             <li key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
               <div className={`max-w-[80%] rounded-2xl border-2 border-ink px-4 py-2.5 ${mine ? "rounded-br-sm bg-blue text-sand" : "rounded-bl-sm bg-sand"}`}>
-                <p className="whitespace-pre-wrap break-words">{m.body}</p>
+                {m.imageUrl && (
+                  <a href={m.imageUrl} target="_blank" rel="noopener noreferrer" className="mb-1.5 block" aria-label="Open photo">
+                    <img src={m.imageUrl} alt="Photo in the chat" loading="lazy" className="max-h-72 w-auto max-w-full rounded-xl border-2 border-ink/20 object-cover" />
+                  </a>
+                )}
+                {m.body && <p className="whitespace-pre-wrap break-words">{m.body}</p>}
                 <div className={`mt-1 flex items-center justify-between gap-3 text-[11px] ${mine ? "text-sand/70" : "text-mute"}`}>
                   <time dateTime={new Date(m.createdAt).toISOString()}>{formatDateTime(m.createdAt)}</time>
                   {!mine && !inq.isTest && <ReportButton targetType="message" targetId={m.id} label="" />}

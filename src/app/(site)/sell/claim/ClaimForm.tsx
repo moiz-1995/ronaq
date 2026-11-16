@@ -1,10 +1,11 @@
 "use client";
 import { useActionState } from "react";
 import { claimProfile } from "@/app/actions/seller";
-import { FormMessage, Submit } from "@/components/ui/form";
+import { FormMessage, Submit, useGoTo } from "@/components/ui/form";
 
 export function ClaimForm() {
   const [state, action] = useActionState(claimProfile, undefined);
+  useGoTo(state);
   return (
     <form action={action} className="card card-shadow mt-6 grid gap-4 bg-white p-6">
       <div className="field">

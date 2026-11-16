@@ -1,8 +1,12 @@
+import Link from "next/link";
 import type { Countdown as C } from "@/lib/time";
 
 /** FR-EVT-005: big flip-card countdown. Never negative — past events show a post-event state. */
-export function CountdownDisplay({ c, compact = false }: { c: C; compact?: boolean }) {
-  if (c.state === "none") return <p className={compact ? "text-sm text-mute" : "text-lg"}>Add a date to start the countdown.</p>;
+export function CountdownDisplay({ c, compact = false, dateHref }: { c: C; compact?: boolean; dateHref?: string }) {
+  if (c.state === "none") {
+    if (!dateHref) return <p className={compact ? "text-sm text-mute" : "text-lg"}>Add a date to start the countdown.</p>;
+    return <Link href={dateHref} className={`inline-flex items-center gap-1.5 font-bold underline decoration-2 underline-offset-4 hover:no-underline ${compact ? "text-sm text-blue" : "text-lg"}`}>Add a date to start the countdown →</Link>;
+  }
   if (c.state === "today") return <p className={`font-display ${compact ? "text-xl" : "text-[clamp(2.4rem,7vw,4.5rem)]"} leading-none text-sun`}>Aaj hai! Mubarak 🎉</p>;
   if (c.state === "past") return <p className={`font-display ${compact ? "text-base" : "text-2xl"} leading-tight`}>Mubarak ho! This was {c.daysAgo} day{c.daysAgo === 1 ? "" : "s"} ago. Leave reviews for your vendors.</p>;
   const digits = String(c.days).split("");

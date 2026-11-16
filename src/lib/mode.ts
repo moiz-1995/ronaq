@@ -22,6 +22,9 @@ export function customerPageName(path: string): string | null {
 /** Set for a moment after a switch from the profile menu, so the next page can say which mode you're in. */
 export const SWITCHED_COOKIE = "ronaq_switched";
 
+/** Set when a vendor hides the profile-status card on their dashboard. */
+export const STATUS_HIDDEN_COOKIE = "ronaq_hide_status";
+
 export const modeCookieOptions = () => ({ httpOnly: true, sameSite: "lax" as const, secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 365 });
 
 /** Who a notification is for: the person as a dukaandaar, as a khareedar, or as Ronaq staff. */

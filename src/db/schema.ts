@@ -204,12 +204,25 @@ export const vendorServices = sqliteTable(
   (t) => [index("services_vendor").on(t.vendorId), index("services_category").on(t.categoryId)],
 );
 
+export const portfolioAlbums = sqliteTable(
+  "portfolio_albums",
+  {
+    id: id(),
+    vendorId: text("vendor_id").notNull(),
+    name: text("name").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [index("albums_vendor").on(t.vendorId)],
+);
+
 export const portfolioItems = sqliteTable(
   "portfolio_items",
   {
     id: id(),
     vendorId: text("vendor_id").notNull(),
     serviceId: text("service_id"),
+    albumId: text("album_id"),
     imageUrl: text("image_url").notNull(),
     caption: text("caption"),
     tags: json<string[]>("tags").default([]),
@@ -361,6 +374,7 @@ export const messages = sqliteTable(
     senderId: text("sender_id").notNull(),
     senderRole: text("sender_role", { enum: ["consumer", "vendor"] }).notNull(),
     body: text("body").notNull(),
+    imageUrl: text("image_url"),
     createdAt: createdAt(),
   },
   (t) => [index("msg_inquiry").on(t.inquiryId)],

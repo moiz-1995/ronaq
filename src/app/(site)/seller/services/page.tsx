@@ -16,6 +16,9 @@ export default async function SellerServices() {
     db.select().from(s.vendorServices).where(eq(s.vendorServices.vendorId, vendor.id)).orderBy(asc(s.vendorServices.createdAt)),
     getCategories(),
   ]);
+  const photos = await db.select({ serviceId: s.portfolioItems.serviceId }).from(s.portfolioItems).where(eq(s.portfolioItems.vendorId, vendor.id));
+  const sampleCount: Record<string, number> = {};
+  for (const p of photos) if (p.serviceId) sampleCount[p.serviceId] = (sampleCount[p.serviceId] ?? 0) + 1;
   return (
     <div className="wrap max-w-4xl py-8">
       <h1 className="h-display text-3xl">Services &amp; prices</h1>
@@ -33,6 +36,7 @@ export default async function SellerServices() {
                   <p className="font-display text-xs text-blue">{cat?.name.toUpperCase()}</p>
                   <p className="text-lg font-bold">{svc.title}</p>
                   {!svc.active && <p className="text-sm font-bold text-red">Hidden from your profile</p>}
+                  <p className="text-sm text-mute">{sampleCount[svc.id] ? `${sampleCount[svc.id]} sample photo${sampleCount[svc.id] > 1 ? "s" : ""}` : "No samples yet. Add some →"}</p>
                 </div>
                 <p className="text-right"><span className="text-xs text-mute">{p.lead} </span><b className="font-display text-red">{p.amount}</b> <span className="text-xs text-mute">{p.unit}</span></p>
               </Link>

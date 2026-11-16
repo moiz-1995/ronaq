@@ -36,6 +36,13 @@
       "when": 1794309599222,
       "tag": "0004_vendor_other_cities",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1794849169750,
+      "tag": "0005_albums_message_photos",
+      "breakpoints": true
     }
   ]
 }

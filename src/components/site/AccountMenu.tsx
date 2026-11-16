@@ -2,11 +2,13 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { usePathname } from "next/navigation";
-import { ArrowLeftRight } from "lucide-react";
+import { ArrowLeftRight, Link2 } from "lucide-react";
+import { toast } from "@/components/ui/Toaster";
+import { goTo } from "@/components/ui/form";
 import { signOutAction } from "@/app/actions/auth";
 import { switchMode } from "@/app/actions/mode";
 
-export function AccountMenu({ name, isSeller, isStaff, vendorMode, otherUnread = 0 }: { name: string; isSeller: boolean; isStaff: boolean; vendorMode: boolean; otherUnread?: number }) {
+export function AccountMenu({ name, isSeller, isStaff, vendorMode, otherUnread = 0, shareSlug = null, shareName = null }: { name: string; isSeller: boolean; isStaff: boolean; vendorMode: boolean; otherUnread?: number; shareSlug?: string | null; shareName?: string | null }) {
   const [open, setOpen] = useState(false);
   const path = usePathname();
   const inVendorMode = isSeller && (vendorMode || path.startsWith("/seller"));
@@ -36,7 +38,7 @@ export function AccountMenu({ name, isSeller, isStaff, vendorMode, otherUnread =
         <div role="menu" className="card card-shadow absolute right-0 top-12 z-50 w-56 overflow-hidden p-1.5 text-ink">
           <p className="px-3 py-2 text-xs text-mute">Signed in as <b className="text-ink">{name}</b>{inVendorMode ? " · dukaandaar" : ""}</p>
           {isSeller ? (
-            <button role="menuitem" type="button" disabled={switching} className={switchBtn} onClick={() => start(async () => { await switchMode(inVendorMode ? "customer" : "vendor", inVendorMode ? "/dashboard" : "/seller", true); setOpen(false); })}>
+            <button role="menuitem" type="button" disabled={switching} className={switchBtn} onClick={() => start(async () => { goTo(await switchMode(inVendorMode ? "customer" : "vendor", inVendorMode ? "/dashboard" : "/seller", true)); })}>
               <ArrowLeftRight size={15} /> {inVendorMode ? "Switch to khareedar" : "Switch to dukaandaar"}{otherUnread > 0 && <span className="ml-auto rounded-full bg-sun px-1.5 text-[11px] text-ink">{otherUnread} new</span>}
             </button>
           ) : (
@@ -52,6 +54,27 @@ export function AccountMenu({ name, isSeller, isStaff, vendorMode, otherUnread =
               {label}
             </Link>
           ))}
+          {shareSlug && (
+            <button role="menuitem" type="button" className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-bold hover:bg-sand"
+              onClick={async () => {
+                const url = `${location.origin}/v/${shareSlug}`;
+                setOpen(false);
+                try {
+                  await navigator.clipboard.writeText(url);
+                  toast({ icon: "link", message: "Dukaan link copied! Paste it on WhatsApp or anywhere." });
+                } catch {
+                  window.prompt("Copy your dukaan link:", url);
+                }
+              }}>
+              <Link2 size={15} /> Copy my dukaan link
+            </button>
+          )}
+          {shareSlug && typeof navigator !== "undefined" && "share" in navigator && (
+            <button role="menuitem" type="button" className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-bold hover:bg-sand"
+              onClick={() => { setOpen(false); navigator.share({ title: shareName ?? "My dukaan on Ronaq", url: `${location.origin}/v/${shareSlug}` }).catch(() => {}); }}>
+              <Link2 size={15} /> Share my dukaan…
+            </button>
+          )}
           <form action={signOutAction}>
             <button role="menuitem" className="w-full rounded-lg px-3 py-2 text-left text-sm font-bold text-red hover:bg-red-soft">Sign out</button>
           </form>

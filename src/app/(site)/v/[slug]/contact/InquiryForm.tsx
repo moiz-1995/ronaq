@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { Lock } from "lucide-react";
 import { createInquiry } from "@/app/actions/inquiries";
-import { FormMessage, Submit } from "@/components/ui/form";
+import { FormMessage, Submit, useGoTo } from "@/components/ui/form";
 import { formatDate } from "@/lib/time";
 import { guestLabel } from "@/lib/domain";
 
@@ -14,6 +14,7 @@ export function InquiryForm({ vendorId, vendorName, events, defaultEventId, chec
   vendorId: string; vendorName: string; events: Ev[]; defaultEventId?: string; checklistItemId?: string; defaultService: string; defaultBudget: number | null;
 }) {
   const [state, action] = useActionState(createInquiry, undefined);
+  useGoTo(state);
   const [eventId, setEventId] = useState(defaultEventId ?? "");
   const ev = events.find((e) => e.id === eventId);
   const firstName = vendorName.split(" ")[0];

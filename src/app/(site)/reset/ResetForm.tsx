@@ -1,10 +1,11 @@
 "use client";
 import { useActionState } from "react";
 import { resetPassword } from "@/app/actions/auth";
-import { FormMessage, Submit } from "@/components/ui/form";
+import { FormMessage, Submit, useGoTo } from "@/components/ui/form";
 
 export function ResetForm({ token }: { token: string }) {
   const [state, action] = useActionState(resetPassword, undefined);
+  useGoTo(state);
   return (
     <form action={action} className="grid gap-4">
       <input type="hidden" name="token" value={token} />

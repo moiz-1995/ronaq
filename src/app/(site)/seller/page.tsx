@@ -2,12 +2,15 @@ import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { Eye, MousePointerClick, MessageCircle, Heart, Timer, Reply, ExternalLink, CalendarCheck, ArrowRight, Sparkles } from "lucide-react";
 import { db, schema as s } from "@/db";
-import { requireVendorPage, vendorCompleteness, vendorMetrics, vendorTips } from "@/lib/seller";
+import { requireVendorPage, vendorMetrics, vendorTips } from "@/lib/seller";
 import { vendorDemand } from "@/lib/queries";
 import { timeAgo } from "@/lib/time";
 import { StatusChip, FoundingBadge } from "@/components/ui/badges";
 import { INQUIRY_STATUS_LABELS } from "@/lib/domain";
 import { TestQueryButton } from "./TestQueryButton";
+import { ShowStatusButton, StatusCard } from "./StatusCard";
+import { cookies } from "next/headers";
+import { STATUS_HIDDEN_COOKIE } from "@/lib/mode";
 import { Confetti } from "@/components/ui/Confetti";
 
 export const metadata = { title: "My Dukaan" };
@@ -23,8 +26,8 @@ const STATUS_COPY: Record<string, string> = {
 export default async function SellerHome({ searchParams }: { searchParams: Promise<{ welcome?: string; claimed?: string }> }) {
   const { vendor } = await requireVendorPage();
   const sp = await searchParams;
-  const [c, tips, m, demand, recent] = await Promise.all([
-    vendorCompleteness(vendor.id),
+  const statusHidden = (await cookies()).get(STATUS_HIDDEN_COOKIE)?.value === "1";
+  const [tips, m, demand, recent] = await Promise.all([
     vendorTips(vendor.id),
     vendorMetrics(vendor.id),
     vendorDemand(vendor.id, vendor.ownerId),
@@ -40,42 +43,16 @@ export default async function SellerHome({ searchParams }: { searchParams: Promi
           <Link href={`/v/${vendor.slug}`} className="btn btn-sm mt-4 w-fit">View my live dukaan <ExternalLink size={14} /></Link>
         </div>
       )}
-      <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-        <section className="card card-shadow bg-white p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h1 className="h-display text-2xl">Profile status</h1>
-            <div className="flex items-center gap-3">{vendor.founding && <FoundingBadge number={vendor.foundingNumber} className="ml-3" />}<StatusChip status={vendor.status} /></div>
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_auto]">
+        <section className="card card-shadow bg-white p-6 sm:p-8">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 className="h-display text-[clamp(1.8rem,4vw,2.6rem)]">Overview</h1>
+              <p className="text-sm text-mute">How your dukaan is doing. Only you can see this.</p>
+            </div>
+            <ShowStatusButton initiallyHidden={statusHidden} />
           </div>
-          <p className="mt-2">{STATUS_COPY[vendor.status]}</p>
-          {vendor.statusReason && <p className="mt-3 rounded-xl border-2 border-red bg-red-soft p-3 text-sm"><b>Note from Ronaq:</b> {vendor.statusReason}</p>}
-          {vendor.pendingChanges && vendor.status === "approved" && <p className="mt-3 rounded-xl bg-sun/40 p-3 text-sm">Our team is checking your changes. Tab tak dukaan live rahegi.</p>}
-          <div className="mt-5">
-            <div className="flex items-baseline justify-between"><p className="font-bold">Profile {tips.percent}% complete</p><p className="text-sm text-mute">{tips.done}/{tips.total}</p></div>
-            <div className="mt-2 h-3 overflow-hidden rounded-full border-2 border-ink"><div className="bar-fill h-full bg-[repeating-linear-gradient(-45deg,var(--color-red)_0_8px,var(--color-blue)_8px_16px)]" style={{ width: `${tips.percent}%` }} /></div>
-            {tips.tips.length > 0 ? (
-              <>
-                <h2 className="mt-5 flex items-center gap-2 font-display text-base"><Sparkles size={16} className="text-red" /> Make your dukaan stand out</h2>
-                <ul data-stagger suppressHydrationWarning className="mt-2 grid gap-2 sm:grid-cols-2">
-                  {tips.tips.map((t) => (
-                    <li key={t.key}><Link href={t.href} className="group flex h-full items-start justify-between gap-2 rounded-xl border-2 border-ink/15 p-3 transition hover:border-ink hover:bg-sand">
-                      <span><span className="block text-sm font-bold">{t.title}</span><span className="block text-xs text-mute">{t.why}</span></span>
-                      <ArrowRight size={16} className="mt-0.5 flex-none text-red transition-transform group-hover:translate-x-0.5" />
-                    </Link></li>
-                  ))}
-                </ul>
-              </>
-            ) : <p className="mt-3 text-sm font-bold text-green">Shabash! Your profile is complete.</p>}
-          </div>
-          <div className="mt-6 flex flex-wrap gap-2">
-            <Link href="/seller/profile" className="btn btn-sm">Edit profile</Link>
-            <Link href={`/v/${vendor.slug}`} className="btn btn-sm">{vendor.status === "approved" ? "View live dukaan" : "Preview"} <ExternalLink size={14} /></Link>
-          </div>
-        </section>
-
-        <section className="card bg-white p-6">
-          <h2 className="font-display text-xl">Overview</h2>
-          <p className="text-xs text-mute">Only your own data</p>
-          <dl className="mt-4 grid grid-cols-2 gap-3">
+          <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
             <Metric icon={Eye} k="Profile views" v={m.views} />
             <Metric icon={MousePointerClick} k="Contact taps" v={m.contactClicks} />
             <Metric icon={MessageCircle} k="Queries" v={m.inquiries} />
@@ -84,7 +61,37 @@ export default async function SellerHome({ searchParams }: { searchParams: Promi
             <Metric icon={Reply} k="Response rate" v={m.responseRate == null ? "—" : `${m.responseRate}%`} />
             <Metric icon={Timer} k="Avg. first reply" v={m.avgResponseHours == null ? "—" : `${m.avgResponseHours} h`} />
           </dl>
+          <div className="mt-6 flex flex-wrap gap-2">
+            <Link href="/seller/profile" className="btn btn-sm">Edit profile</Link>
+            <Link href={`/v/${vendor.slug}`} className="btn btn-sm">{vendor.status === "approved" ? "View live dukaan" : "Preview"} <ExternalLink size={14} /></Link>
+          </div>
         </section>
+
+        <StatusCard initiallyHidden={statusHidden}>
+          <div className="flex flex-wrap items-center gap-2 pr-8">
+            <h2 className="font-display text-base">Profile status</h2>
+            <StatusChip status={vendor.status} />
+          </div>
+          {vendor.founding && <div className="mt-2"><FoundingBadge number={vendor.foundingNumber} className="ml-3" /></div>}
+          <p className="mt-2 text-sm">{STATUS_COPY[vendor.status]}</p>
+          {vendor.statusReason && <p className="mt-2 rounded-xl border-2 border-red bg-red-soft p-2.5 text-sm"><b>Note from Ronaq:</b> {vendor.statusReason}</p>}
+          {vendor.pendingChanges && vendor.status === "approved" && <p className="mt-2 rounded-xl bg-sun/40 p-2.5 text-sm">Our team is checking your changes. Tab tak dukaan live rahegi.</p>}
+          <div className="mt-4">
+            <div className="flex items-baseline justify-between text-sm"><p className="font-bold">Profile {tips.percent}% complete</p><p className="text-mute">{tips.done}/{tips.total}</p></div>
+            <div className="mt-1.5 h-2.5 overflow-hidden rounded-full border-2 border-ink"><div className="bar-fill h-full bg-[repeating-linear-gradient(-45deg,var(--color-red)_0_8px,var(--color-blue)_8px_16px)]" style={{ width: `${tips.percent}%` }} /></div>
+          </div>
+          {tips.tips.length > 0 ? (
+            <ul className="mt-3 grid gap-1.5">
+              {tips.tips.slice(0, 3).map((t) => (
+                <li key={t.key}><Link href={t.href} className="group flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm font-bold hover:bg-sand">
+                  <span className="flex items-center gap-1.5"><Sparkles size={13} className="flex-none text-red" /> {t.title}</span>
+                  <ArrowRight size={14} className="flex-none text-red transition-transform group-hover:translate-x-0.5" />
+                </Link></li>
+              ))}
+              {tips.tips.length > 3 && <li className="px-2 text-xs text-mute">+{tips.tips.length - 3} more tips. Fill them in from your profile.</li>}
+            </ul>
+          ) : <p className="mt-3 text-sm font-bold text-green">Shabash! Your profile is complete.</p>}
+        </StatusCard>
       </div>
 
       <section className="card flex flex-wrap items-center justify-between gap-4 border-dashed bg-sand/50 p-6">
@@ -113,9 +120,9 @@ export default async function SellerHome({ searchParams }: { searchParams: Promi
 
 function Metric({ icon: I, k, v }: { icon: typeof Eye; k: string; v: number | string }) {
   return (
-    <div className="rounded-xl border-2 border-ink/10 p-3">
-      <dt className="flex items-center gap-1.5 text-xs text-mute"><I size={14} /> {k}</dt>
-      <dd className="mt-1 font-display text-2xl tabular">{v}</dd>
+    <div className="rounded-2xl border-2 border-ink/10 bg-paper/50 p-4">
+      <dt className="flex items-center gap-1.5 text-xs font-bold text-mute"><I size={15} className="text-red" /> {k}</dt>
+      <dd className="mt-2 font-display text-3xl tabular">{v}</dd>
     </div>
   );
 }

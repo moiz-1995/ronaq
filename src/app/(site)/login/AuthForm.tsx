@@ -1,12 +1,15 @@
 "use client";
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { signInAction, signUpAction } from "@/app/actions/auth";
-import { FormMessage, Submit } from "@/components/ui/form";
+import { FormMessage, Submit, useGoTo } from "@/components/ui/form";
 
-export function AuthForm({ mode, next, intent: initialIntent = "plan" }: { mode: "login" | "signup"; next?: string; intent?: "plan" | "sell" }) {
+export function AuthForm({ mode, next, intent: initialIntent = "plan", signedInHome }: { mode: "login" | "signup"; next?: string; intent?: "plan" | "sell"; signedInHome?: string }) {
   const [state, action] = useActionState(mode === "login" ? signInAction : signUpAction, undefined);
+  useGoTo(state);
+  // already signed in when the page opened: go to your usual home (after signing in here, the form decides instead)
+  useEffect(() => { if (signedInHome && !state?.goTo) window.location.replace(signedInHome); }, [signedInHome, state]);
   const [show, setShow] = useState(false);
   const [intent, setIntent] = useState(initialIntent);
   return (

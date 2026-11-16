@@ -1,15 +1,14 @@
 "use server";
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { and, asc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema as s } from "@/db";
 import { checklistStatuses } from "@/db/schema";
-import { requireUser, checkPassword, hashPassword } from "@/lib/auth";
+import { requireUser, checkPassword, hashPassword, safeNext } from "@/lib/auth";
 import { track } from "@/lib/track";
 import { getCategories, getTemplates } from "@/lib/queries";
 
-type Result = { error?: string; message?: string; ok?: boolean } | undefined;
+type Result = { error?: string; message?: string; ok?: boolean; goTo?: string } | undefined;
 const money = (v: FormDataEntryValue | null) => {
   const n = Number(String(v ?? "").replace(/[^\d]/g, ""));
   return n > 0 ? n : null;
@@ -53,14 +52,14 @@ export async function saveOnboarding(_: unknown, form: FormData): Promise<Result
     onboardedAt: new Date(),
   }).where(eq(s.users.id, user.id));
   await track("onboarding_completed", { userId: user.id, cityId });
-  redirect(planning === "yes" ? "/launchpad" : String(form.get("next") || "/marketplace"));
+  return { ok: true, goTo: planning === "yes" ? "/launchpad" : safeNext(String(form.get("next") || ""), "/marketplace") };
 }
 
 export async function skipOnboarding(next: string) {
   const user = await requireUser("/onboarding");
   await db.update(s.users).set({ onboardedAt: new Date() }).where(eq(s.users.id, user.id));
   await track("onboarding_skipped", { userId: user.id });
-  redirect(next.startsWith("/") ? next : "/marketplace");
+  return safeNext(next, "/marketplace");
 }
 
 // ---------- Launchpad (§7.1) ----------
@@ -95,7 +94,7 @@ export async function launchpadChecklist(_: unknown, form: FormData): Promise<Re
   }
   await db.update(s.users).set({ launchpadStep: Math.max(user.launchpadStep, 2) }).where(eq(s.users.id, user.id));
   await track("launchpad_started", { userId: user.id });
-  redirect("/launchpad?step=2");
+  return { ok: true, goTo: "/launchpad?step=2" };
 }
 
 export async function launchpadDates(_: unknown, form: FormData): Promise<Result> {
@@ -116,7 +115,7 @@ export async function launchpadDates(_: unknown, form: FormData): Promise<Result
   const sec = names.map((n, i) => ({ name: n.trim().slice(0, 80), date: /^\d{4}-\d{2}-\d{2}$/.test(dates[i] ?? "") ? dates[i] : null })).filter((x) => x.name);
   if (sec.length) await db.insert(s.events).values(sec.map((x) => ({ userId: user.id, name: x.name, date: x.date, type: guessType(x.name), label: null })));
   await db.update(s.users).set({ launchpadStep: Math.max(user.launchpadStep, 3) }).where(eq(s.users.id, user.id));
-  redirect("/launchpad?step=3");
+  return { ok: true, goTo: "/launchpad?step=3" };
 }
 
 function guessType(name: string) {
@@ -129,14 +128,14 @@ function guessType(name: string) {
 export async function launchpadSkipTo(step: number) {
   const user = await requireUser("/launchpad");
   await db.update(s.users).set({ launchpadStep: Math.max(user.launchpadStep, step) }).where(eq(s.users.id, user.id));
-  redirect(step >= 4 ? "/marketplace" : `/launchpad?step=${step}`);
+  return step >= 4 ? "/marketplace" : `/launchpad?step=${step}`;
 }
 
 export async function finishLaunchpad() {
   const user = await requireUser("/launchpad");
   await db.update(s.users).set({ launchpadStep: 4 }).where(eq(s.users.id, user.id));
   await track("launchpad_completed", { userId: user.id });
-  redirect("/marketplace?from=launchpad");
+  return "/marketplace?from=launchpad";
 }
 
 // ---------- events (FR-EVT-001/002/003) ----------
@@ -169,7 +168,7 @@ export async function saveEvent(_: unknown, form: FormData): Promise<Result> {
   }
   if (form.get("makePrimary") === "on") await setPrimaryInner(user.id, eventId!);
   refreshEvent(eventId!);
-  redirect(`/events/${eventId}`);
+  return { ok: true, goTo: `/events/${eventId}` };
 }
 
 async function setPrimaryInner(userId: string, eventId: string) {
@@ -202,7 +201,7 @@ export async function deleteEvent(eventId: string) {
     if (next) await db.update(s.events).set({ isPrimary: true }).where(eq(s.events.id, next.id));
   }
   revalidatePath("/events");
-  redirect("/events");
+  return "/events";
 }
 
 // ---------- checklist (FR-EVT-008…013) ----------

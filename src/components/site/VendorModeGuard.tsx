@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { customerPageName } from "@/lib/mode";
 import { switchMode } from "@/app/actions/mode";
+import { goTo } from "@/components/ui/form";
 
 /** In vendor view, following a link to a customer page asks before switching views. */
 export function VendorModeGuard({ isSeller, vendorMode }: { isSeller: boolean; vendorMode: boolean }) {
@@ -35,7 +36,7 @@ export function VendorModeGuard({ isSeller, vendorMode }: { isSeller: boolean; v
       cancelLabel="Dukaandaar hi rehna hai"
       busy={busy}
       onClose={() => setTarget(null)}
-      onConfirm={() => target && start(async () => { await switchMode("customer", target.href); setTarget(null); })}
+      onConfirm={() => target && start(async () => { goTo(await switchMode("customer", target.href)); })}
     >
       Aap abhi dukaandaar (vendor) view mein hain. {target?.name ?? "Yeh page"} kholne ke liye khareedar (customer) view par jana hoga. Wapas aana ho to profile menu se switch kar lein.
     </ConfirmDialog>

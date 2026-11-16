@@ -2,13 +2,14 @@
 import { Select } from "@/components/ui/Select";
 import { useActionState, useState, useTransition } from "react";
 import { saveOnboarding, skipOnboarding } from "@/app/actions/planner";
-import { FormMessage, Submit } from "@/components/ui/form";
+import { FormMessage, Submit, useGoTo, goTo } from "@/components/ui/form";
 
 export function OnboardingForm({ next, user, cities, cats, heard }: {
   next: string; user: { name: string; cityId: string | null; interests: string[] };
   cities: { id: string; name: string; active: boolean }[]; cats: { id: string; name: string }[]; heard: string[];
 }) {
   const [state, action] = useActionState(saveOnboarding, undefined);
+  useGoTo(state);
   const [heardFrom, setHeardFrom] = useState("");
   const [pending, start] = useTransition();
   const launch = cities.filter((c) => c.active);
@@ -55,7 +56,7 @@ export function OnboardingForm({ next, user, cities, cats, heard }: {
       <FormMessage state={state} />
       <div className="flex flex-wrap items-center gap-3">
         <Submit>Continue</Submit>
-        <button type="button" className="btn btn-ghost" disabled={pending} onClick={() => start(() => skipOnboarding(next))}>Skip for now</button>
+        <button type="button" className="btn btn-ghost" disabled={pending} onClick={() => start(async () => goTo(await skipOnboarding(next)))}>Skip for now</button>
       </div>
     </form>
   );

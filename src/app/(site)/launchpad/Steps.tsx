@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
 import { Plus, X, Sparkles } from "lucide-react";
 import { finishLaunchpad, launchpadChecklist, launchpadDates, launchpadSkipTo } from "@/app/actions/planner";
-import { FormMessage, Submit } from "@/components/ui/form";
+import { FormMessage, Submit, useGoTo, goTo } from "@/components/ui/form";
 import { CraftArt } from "@/components/art/CraftArt";
 import { Confetti } from "@/components/ui/Confetti";
 import { GuestPicker } from "@/components/planner/GuestPicker";
@@ -13,6 +13,7 @@ type Tpl = { slug: string; name: string; items: { label: string; categorySlug?: 
 
 export function ChecklistStep({ templates, cats, existing, initialTemplate }: { templates: Tpl[]; cats: { slug: string; name: string; art: string }[]; existing: string[]; initialTemplate: string }) {
   const [state, action] = useActionState(launchpadChecklist, undefined);
+  useGoTo(state);
   const [tpl, setTpl] = useState(initialTemplate);
   const [pending, start] = useTransition();
   const t = templates.find((x) => x.slug === tpl)!;
@@ -77,7 +78,7 @@ export function ChecklistStep({ templates, cats, existing, initialTemplate }: { 
       <FormMessage state={state} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Submit pendingText="Saving…">Save &amp; continue</Submit>
-        <button type="button" className="btn btn-sm" disabled={pending} onClick={() => start(() => launchpadSkipTo(2))}>Skip for now →</button>
+        <button type="button" className="btn btn-sm" disabled={pending} onClick={() => start(async () => goTo(await launchpadSkipTo(2)))}>Skip for now →</button>
       </div>
     </form>
   );
@@ -87,6 +88,7 @@ type EvLite = { name: string; type: string; label: string | null; date: string |
 
 export function DatesStep({ types, ev }: { types: { value: string; label: string; heading: string }[]; ev: EvLite }) {
   const [state, action] = useActionState(launchpadDates, undefined);
+  useGoTo(state);
   const [type, setType] = useState(ev?.type ?? "wedding");
   const [label, setLabel] = useState(ev?.label ?? types.find((t) => t.value === (ev?.type ?? "wedding"))?.heading ?? "");
   const [sec, setSec] = useState<{ name: string; date: string }[]>([]);
@@ -132,7 +134,7 @@ export function DatesStep({ types, ev }: { types: { value: string; label: string
       <FormMessage state={state} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Submit pendingText="Saving…">Save &amp; continue</Submit>
-        <button type="button" className="btn btn-sm" disabled={pending} onClick={() => start(() => launchpadSkipTo(3))}>Skip, I&apos;ll add it later →</button>
+        <button type="button" className="btn btn-sm" disabled={pending} onClick={() => start(async () => goTo(await launchpadSkipTo(3)))}>Skip, I&apos;ll add it later →</button>
       </div>
     </form>
   );
@@ -156,7 +158,7 @@ export function MarketStep({ cats, hasEvent }: { cats: { slug: string; name: str
         </div>
       )}
       <div className="flex flex-wrap gap-3">
-        <button className="btn btn-red" disabled={pending} onClick={() => start(() => finishLaunchpad())}>Open the marketplace</button>
+        <button className="btn btn-red" disabled={pending} onClick={() => start(async () => goTo(await finishLaunchpad()))}>Open the marketplace</button>
         <Link href="/dashboard" className="btn">Go to my dashboard</Link>
       </div>
     </div>

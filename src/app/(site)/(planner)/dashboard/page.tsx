@@ -56,7 +56,7 @@ export default async function Dashboard() {
                   {primary.date && <span className="inline-flex items-center gap-1"><CalendarDays size={15} /> {formatDate(primary.date)}</span>}
                   {primary.location && <span className="inline-flex items-center gap-1"><MapPin size={15} /> {primary.location}</span>}
                 </p>
-                <div className="mt-6"><CountdownDisplay c={c} /></div>
+                <div className="mt-6"><CountdownDisplay c={c} dateHref={`/events/${primary.id}/edit#date`} /></div>
               </>
             ) : (
               <p className="mt-3 max-w-[48ch] text-lg text-sand/80">Set up your first event and we&apos;ll count down with you, track every service and keep your quotes in one place.</p>

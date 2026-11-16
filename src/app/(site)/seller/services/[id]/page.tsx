@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { and, eq, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { db, schema as s } from "@/db";
 import { requireVendorPage } from "@/lib/seller";
 import { getAttributes, getCategories } from "@/lib/queries";
 import { ServiceForm } from "./ServiceForm";
+import { ServiceSamples } from "./ServiceSamples";
 
 export const metadata = { title: "Edit service" };
 
@@ -13,10 +14,11 @@ export default async function ServicePage({ params }: { params: Promise<{ id: st
   const { vendor } = await requireVendorPage(`/seller/services/${id}`);
   const svc = await db.query.vendorServices.findFirst({ where: and(eq(s.vendorServices.id, id), eq(s.vendorServices.vendorId, vendor.id)) });
   if (!svc) notFound();
-  const [cat, attrs, [{ n }]] = await Promise.all([
+  const [cat, attrs, [{ n }], samples] = await Promise.all([
     getCategories().then((cs) => cs.find((c) => c.id === svc.categoryId)),
     getAttributes(svc.categoryId),
     db.select({ n: sql<number>`count(*)` }).from(s.vendorServices).where(eq(s.vendorServices.vendorId, vendor.id)),
+    db.select().from(s.portfolioItems).where(and(eq(s.portfolioItems.vendorId, vendor.id), eq(s.portfolioItems.serviceId, svc.id))).orderBy(asc(s.portfolioItems.sortOrder)),
   ]);
   return (
     <div className="wrap max-w-3xl py-8">
@@ -29,6 +31,7 @@ export default async function ServicePage({ params }: { params: Promise<{ id: st
         attrs={attrs.map((a) => ({ key: a.key, label: a.label, type: a.type, options: a.options ?? [], unit: a.unit, required: a.required, vendorDeclared: a.vendorDeclared, help: a.help }))}
         canDelete={Number(n) > 1}
       />
+      <ServiceSamples serviceId={svc.id} serviceTitle={svc.title} samples={samples.map((p) => ({ id: p.id, imageUrl: p.imageUrl, caption: p.caption }))} />
     </div>
   );
 }

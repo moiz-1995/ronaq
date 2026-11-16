@@ -41,7 +41,7 @@ export default async function VendorPage({ params }: { params: Promise<{ slug: s
   const isStaff = !!user && user.role !== "user";
   if (v.status !== "approved" && !isOwner && !isStaff) notFound();
 
-  const [services, portfolio, reviewRows, cats, areas, cities, saved, blocked, policy, demand] = await Promise.all([
+  const [services, portfolio, reviewRows, cats, areas, cities, saved, blocked, policy, demand, albums] = await Promise.all([
     db.select().from(s.vendorServices).where(and(eq(s.vendorServices.vendorId, v.id), eq(s.vendorServices.active, true))).orderBy(asc(s.vendorServices.createdAt)),
     db.select().from(s.portfolioItems).where(and(eq(s.portfolioItems.vendorId, v.id), eq(s.portfolioItems.status, "visible"))).orderBy(asc(s.portfolioItems.sortOrder)),
     db.select({ r: s.reviews, author: s.users.name }).from(s.reviews).innerJoin(s.users, eq(s.users.id, s.reviews.authorId)).where(and(eq(s.reviews.vendorId, v.id), eq(s.reviews.status, "published"))).orderBy(desc(s.reviews.createdAt)).limit(30),
@@ -49,6 +49,7 @@ export default async function VendorPage({ params }: { params: Promise<{ slug: s
     db.select().from(s.availability).where(and(eq(s.availability.vendorId, v.id), gte(s.availability.date, todayPKT()))).orderBy(asc(s.availability.date)).limit(60),
     getSetting("reviewPolicy"),
     vendorDemand(v.id, v.ownerId),
+    db.select().from(s.portfolioAlbums).where(eq(s.portfolioAlbums.vendorId, v.id)).orderBy(asc(s.portfolioAlbums.sortOrder), asc(s.portfolioAlbums.createdAt)),
   ]);
   const attrDefs = services.length ? await db.select().from(s.attributes).where(inArray(s.attributes.categoryId, services.map((x) => x.categoryId))) : [];
   const mainCat = cats.find((c) => c.id === services[0]?.categoryId);
@@ -212,7 +213,7 @@ export default async function VendorPage({ params }: { params: Promise<{ slug: s
           {portfolio.length > 0 && (
             <section className="min-w-0" aria-labelledby="port">
               <h2 id="port" className="h-display mb-4 text-2xl">Portfolio</h2>
-              <Gallery items={portfolio} vendorName={v.name} />
+              <Gallery items={portfolio} vendorName={v.name} albums={albums.map((a) => ({ id: a.id, name: a.name }))} />
             </section>
           )}
 

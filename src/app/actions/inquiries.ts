@@ -9,6 +9,7 @@ import { notify, track } from "@/lib/track";
 import { loadThreadFor } from "@/lib/threads";
 import { rateLimit, TOO_MANY } from "@/lib/ratelimit";
 import { todayPKT } from "@/lib/time";
+import { saveImage, UploadError } from "@/lib/storage";
 
 const inquirySchema = z.object({
   vendorId: z.string().min(1),
@@ -19,7 +20,7 @@ const inquirySchema = z.object({
 });
 
 /** FR-COM-001/002: the consumer chooses exactly which event details to share. */
-export async function createInquiry(_: unknown, form: FormData): Promise<{ error?: string } | undefined> {
+export async function createInquiry(_: unknown, form: FormData): Promise<{ error?: string; goTo?: string } | undefined> {
   const user = await requireUser();
   if (!(await rateLimit("inquiry", 20, 60 * 60 * 1000, user.id))) return { error: "You have sent a lot of inquiries in the last hour. Please wait a little before sending more." };
   const parsed = inquirySchema.safeParse(Object.fromEntries(form));
@@ -64,7 +65,7 @@ export async function createInquiry(_: unknown, form: FormData): Promise<{ error
   }
   await notify(vendor.ownerId, { type: "inquiry_new", title: `New inquiry from ${user.name}`, body: d.message.slice(0, 120), href: `/seller/inquiries/${inq.id}` });
   await track("inquiry_created", { userId: user.id, cityId: vendor.cityId, categoryId: svc?.categoryId, props: { source: inq.source } });
-  redirect(`/inbox/${inq.id}?sent=1`);
+  return { goTo: `/inbox/${inq.id}?sent=1` };
 }
 
 const viewingAs = (v: unknown) => (v === "vendor" || v === "consumer" ? v : undefined);
@@ -74,7 +75,7 @@ export async function sendTestQuery() {
   const user = await requireUser("/seller");
   const vendor = await db.query.vendors.findFirst({ where: eq(s.vendors.ownerId, user.id) });
   if (!vendor) redirect("/seller/onboarding");
-  if (!(await rateLimit("test-query", 10, 60 * 60 * 1000, user.id))) redirect("/seller/inquiries");
+  if (!(await rateLimit("test-query", 10, 60 * 60 * 1000, user.id))) return "/seller/inquiries";
   const svc = await db.query.vendorServices.findFirst({ where: eq(s.vendorServices.vendorId, vendor.id) });
   const eventDate = new Date(Date.parse(todayPKT() + "T00:00:00Z") + 30 * 86400000).toISOString().slice(0, 10);
   const now = new Date();
@@ -85,31 +86,43 @@ export async function sendTestQuery() {
   }).returning();
   await db.insert(s.messages).values({ inquiryId: inq.id, senderId: user.id, senderRole: "consumer", createdAt: now, body: "Assalam o alaikum! Yeh ek test query hai. Agle mahine hamari shaadi hai, kya aap available hain aur rate kya hoga?" });
   await notify(user.id, { type: "inquiry_new", title: "New test query for your dukaan", href: `/seller/inquiries/${inq.id}` });
-  redirect(`/seller/inquiries/${inq.id}`);
+  return `/seller/inquiries/${inq.id}`;
 }
 
 export async function sendMessage(_: unknown, form: FormData): Promise<{ error?: string; ok?: boolean } | undefined> {
   const user = await requireUser();
   const inquiryId = String(form.get("inquiryId") ?? "");
   const body = String(form.get("body") ?? "").trim();
-  if (!body) return { error: "Write a message first." };
+  const photo = form.get("image");
+  const hasPhoto = photo instanceof File && photo.size > 0;
+  if (!body && !hasPhoto) return { error: "Write a message or add a photo." };
   if (!(await rateLimit("message", 60, 10 * 60 * 1000, user.id))) return { error: TOO_MANY };
   if (body.length > 2000) return { error: "Messages can be up to 2,000 characters." };
   const t = await loadThreadFor(inquiryId, user.id, viewingAs(form.get("as")));
   if (!t) return { error: "We couldn't find this conversation." };
   if (t.inq.status === "closed") return { error: "This conversation is closed. Reopen it to send a message." };
+  let imageUrl: string | null = null;
+  if (hasPhoto) {
+    try {
+      imageUrl = await saveImage(photo as File, "messages");
+    } catch (e) {
+      if (e instanceof UploadError) return { error: e.message };
+      throw e;
+    }
+  }
+  const preview = body ? body.slice(0, 120) : "📷 Photo";
   const now = new Date();
-  await db.insert(s.messages).values({ inquiryId, senderId: user.id, senderRole: t.role, body, createdAt: now });
+  await db.insert(s.messages).values({ inquiryId, senderId: user.id, senderRole: t.role, body, imageUrl, createdAt: now });
   if (t.role === "vendor") {
     await db.update(s.inquiries).set({
       consumerUnread: sql`${s.inquiries.consumerUnread} + 1`, lastMessageAt: now, status: "responded",
       firstResponseAt: t.inq.firstResponseAt ?? now,
     }).where(eq(s.inquiries.id, inquiryId));
-    await notify(t.inq.consumerId, { type: "inquiry_reply", title: `${t.vendor.name} replied`, body: body.slice(0, 120), href: `/inbox/${inquiryId}` });
+    await notify(t.inq.consumerId, { type: "inquiry_reply", title: `${t.vendor.name} replied`, body: preview, href: `/inbox/${inquiryId}` });
     if (!t.inq.isTest) await track("inquiry_response_sent", { userId: user.id, props: { first: !t.inq.firstResponseAt } });
   } else {
     await db.update(s.inquiries).set({ vendorUnread: sql`${s.inquiries.vendorUnread} + 1`, lastMessageAt: now }).where(eq(s.inquiries.id, inquiryId));
-    await notify(t.vendor.ownerId, { type: "inquiry_message", title: `New message from ${user.name}`, body: body.slice(0, 120), href: `/seller/inquiries/${inquiryId}` });
+    await notify(t.vendor.ownerId, { type: "inquiry_message", title: `New message from ${user.name}`, body: preview, href: `/seller/inquiries/${inquiryId}` });
   }
   revalidatePath(`/inbox/${inquiryId}`);
   revalidatePath(`/seller/inquiries/${inquiryId}`);

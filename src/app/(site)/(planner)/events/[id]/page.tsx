@@ -38,7 +38,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
               {ev.location && <span className="inline-flex items-center gap-1"><MapPin size={15} /> {ev.location}</span>}
               {ev.guestCount && <span className="inline-flex items-center gap-1"><Users size={15} /> {guestLabel(ev.guestCount)}</span>}
             </p>
-            <div className="mt-4"><CountdownDisplay c={countdown(ev.date)} compact /></div>
+            <div className="mt-4"><CountdownDisplay c={countdown(ev.date)} compact dateHref={`/events/${ev.id}/edit#date`} /></div>
           </div>
           <div className="flex flex-wrap gap-2">
             {!ev.isPrimary && <MakePrimaryButton id={ev.id} />}

@@ -1,5 +1,4 @@
 "use server";
-import { redirect } from "next/navigation";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema as s } from "@/db";
@@ -17,7 +16,7 @@ const schema = z.object({
   evidence: z.string().trim().max(500).optional(),
 });
 
-export async function createReview(_: unknown, form: FormData): Promise<{ error?: string } | undefined> {
+export async function createReview(_: unknown, form: FormData): Promise<{ error?: string; goTo?: string } | undefined> {
   const user = await requireUser();
   const parsed = schema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
@@ -41,5 +40,5 @@ export async function createReview(_: unknown, form: FormData): Promise<{ error?
     await refreshRating(vendor.id);
     await notify(vendor.ownerId, { type: "review_new", title: `New ${d.rating}★ review`, body: d.text?.slice(0, 100), href: `/v/${vendor.slug}#rev` });
   }
-  redirect(`/v/${vendor.slug}?reviewed=${el.startsAs}#rev`);
+  return { goTo: `/v/${vendor.slug}?reviewed=${el.startsAs}#rev` };
 }

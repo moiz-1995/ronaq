@@ -33,7 +33,7 @@ export default async function SellerInquiries({ searchParams }: { searchParams: 
                 <div className="grid h-12 w-12 flex-none place-items-center rounded-full border-2 border-ink bg-sand font-display">{name[0]}</div>
                 <div className="min-w-0 flex-1">
                   <p className="font-bold">{i.isTest ? "Test khareedar" : name} {i.isTest && <span className="chip bg-sun">TEST</span>} {i.shared?.eventDate && <span className="font-normal text-mute">· {formatDate(i.shared.eventDate)}</span>}</p>
-                  <p className={`truncate text-sm ${i.vendorUnread ? "font-bold" : "text-mute"}`}>{m?.senderRole === "vendor" ? "You: " : ""}{m?.body}</p>
+                  <p className={`truncate text-sm ${i.vendorUnread ? "font-bold" : "text-mute"}`}>{m?.senderRole === "vendor" ? "You: " : ""}{m?.body || (m?.imageUrl ? "📷 Photo" : "")}</p>
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <StatusChip status={i.status} label={INQUIRY_STATUS_LABELS[i.status]} />

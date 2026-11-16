@@ -12,7 +12,7 @@ import { notify } from "@/lib/track";
 import { appUrl, emailEnabled, sendEmail } from "@/lib/email";
 import { clearResetTokens, createResetToken, findResetToken } from "@/lib/passwordReset";
 
-export type FormState = { error?: string; fields?: Record<string, string>; ok?: boolean; message?: string } | undefined;
+export type FormState = { error?: string; fields?: Record<string, string>; ok?: boolean; message?: string; goTo?: string } | undefined;
 
 const signUpSchema = z.object({
   name: z.string().trim().min(2, "Tell us your name."),
@@ -38,8 +38,7 @@ export async function signUpAction(_: FormState, form: FormData): Promise<FormSt
   await createSession(user.id);
   await track("registration_completed", { userId: user.id, props: { intent } });
   const next = raw.next ? safeNext(raw.next) : null;
-  if (intent === "sell") redirect("/seller/onboarding");
-  redirect(next ?? "/onboarding");
+  return { ok: true, goTo: intent === "sell" ? "/seller/onboarding" : next ?? "/onboarding" };
 }
 
 export async function signInAction(_: FormState, form: FormData): Promise<FormState> {
@@ -57,7 +56,7 @@ export async function signInAction(_: FormState, form: FormData): Promise<FormSt
   const jar = await cookies();
   if (vendor && !next) jar.set(MODE_COOKIE, "vendor", modeCookieOptions());
   else jar.delete(MODE_COOKIE);
-  redirect(safeNext(next, user.role !== "user" ? "/admin" : vendor ? "/seller" : user.isSeller ? "/seller/onboarding" : "/dashboard"));
+  return { ok: true, goTo: safeNext(next, user.role !== "user" ? "/admin" : vendor ? "/seller" : user.isSeller ? "/seller/onboarding" : "/dashboard") };
 }
 
 export async function signOutAction() {
@@ -78,12 +77,11 @@ export async function requestPasswordReset(_: FormState, form: FormData): Promis
       const raw = await createResetToken(user.id, 60 * 60 * 1000);
       await sendEmail(email, "Ronaq: naya password banayein", `Assalam o alaikum ${user.name},\n\nNaya password banane ke liye yeh link kholein (1 ghante tak chalega):\n${appUrl()}/reset?token=${raw}\n\nAgar aap ne yeh nahi maanga to is email ko chhor dein.`);
     } else {
-      const contact = String(form.get("contact") ?? "").replace(/[^\d+ ]/g, "").trim().slice(0, 20);
       const admins = await db.select({ id: s.users.id }).from(s.users).where(eq(s.users.role, "admin"));
-      for (const a of admins) await notify(a.id, { type: "admin_password_reset", title: `${user.name} forgot their password`, body: contact ? `${email} · WhatsApp ${contact}` : email, href: `/admin/users?q=${encodeURIComponent(email)}` });
+      for (const a of admins) await notify(a.id, { type: "admin_password_reset", title: `${user.name} forgot their password`, body: `${email}. Send them a reset link from Users.`, href: `/admin/users?q=${encodeURIComponent(email)}` });
     }
   }
-  return { ok: true, message: byEmail ? "Agar yeh email Ronaq par hai to reset link bhej diya gaya hai. Apna inbox dekhein." : "Aap ki request mil gayi. Agar yeh email Ronaq par hai to team aap ko reset link bhej degi." };
+  return { ok: true, message: byEmail ? "Agar yeh email Ronaq par hai to reset link bhej diya gaya hai. Apna inbox dekhein." : "Request received. If this email is registered on Ronaq, a reset link will be sent to it." };
 }
 
 export async function resetPassword(_: FormState, form: FormData): Promise<FormState> {
@@ -95,7 +93,7 @@ export async function resetPassword(_: FormState, form: FormData): Promise<FormS
   await db.update(s.users).set({ passwordHash: await hashPassword(password) }).where(eq(s.users.id, t.userId));
   await clearResetTokens(t.userId);
   await track("password_reset_completed", { userId: t.userId });
-  redirect(`/login?reason=${encodeURIComponent("Password badal gaya. Ab naye password se sign in karein.")}`);
+  return { ok: true, goTo: `/login?reason=${encodeURIComponent("Password badal gaya. Ab naye password se sign in karein.")}` };
 }
 
 export async function verifyEmail(token: string): Promise<boolean> {

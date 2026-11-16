@@ -17,7 +17,7 @@ export async function switchMode(mode: AccountMode, href: string, announce = fal
   await remember(mode === "vendor" ? "vendor" : "customer");
   // readable by the page for a few seconds, only to show the "you switched" popup
   if (announce) (await cookies()).set(SWITCHED_COOKIE, mode === "vendor" ? "vendor" : "customer", { path: "/", maxAge: 30, sameSite: "lax" });
-  redirect(safeNext(href, mode === "vendor" ? "/seller" : "/dashboard"));
+  return safeNext(href, mode === "vendor" ? "/seller" : "/dashboard");
 }
 
 /** Opening any vendor page (for example from a notification) counts as being in vendor view. */

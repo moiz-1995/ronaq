@@ -3,11 +3,15 @@ import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Picture } from "@/components/art/CraftArt";
 
-type Item = { id: string; imageUrl: string; caption: string | null; priceExample: string | null; tags: string[] | null };
+type Item = { id: string; imageUrl: string; caption: string | null; priceExample: string | null; tags: string[] | null; albumId?: string | null };
 
 /** FR-MKT-011: responsive portfolio gallery with a keyboard-friendly lightbox. */
-export function Gallery({ items, vendorName }: { items: Item[]; vendorName: string }) {
+export function Gallery({ items: all, vendorName, albums = [] }: { items: Item[]; vendorName: string; albums?: { id: string; name: string }[] }) {
   const [open, setOpen] = useState<number | null>(null);
+  // albums with at least one photo show as tabs; "All photos" is always first
+  const tabs = albums.filter((a) => all.some((it) => it.albumId === a.id));
+  const [tab, setTab] = useState("all");
+  const items = tab === "all" ? all : all.filter((it) => it.albumId === tab);
   useEffect(() => {
     if (open == null) return;
     const onKey = (e: KeyboardEvent) => {
@@ -18,9 +22,16 @@ export function Gallery({ items, vendorName }: { items: Item[]; vendorName: stri
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open, items.length]);
-  if (!items.length) return <p className="text-mute">No portfolio images yet.</p>;
+  if (!all.length) return <p className="text-mute">No portfolio images yet.</p>;
   return (
     <>
+      {tabs.length > 0 && (
+        <div className="mb-4 flex flex-wrap gap-2" role="tablist" aria-label="Albums">
+          {[{ id: "all", name: "All photos", n: all.length }, ...tabs.map((a) => ({ ...a, n: all.filter((it) => it.albumId === a.id).length }))].map((a) => (
+            <button key={a.id} type="button" role="tab" aria-selected={tab === a.id} onClick={() => { setTab(a.id); setOpen(null); }} className={`check !text-xs ${tab === a.id ? "!bg-ink !text-sand" : ""}`}>{a.name} · {a.n}</button>
+          ))}
+        </div>
+      )}
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {items.map((it, i) => (
           <li key={it.id} className={i === 0 ? "col-span-2 row-span-2" : ""}>
